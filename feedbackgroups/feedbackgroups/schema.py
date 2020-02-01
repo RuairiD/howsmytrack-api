@@ -10,6 +10,11 @@ from feedbackgroups.feedbackgroups.models import FeedbackRequest
 from feedbackgroups.feedbackgroups.models import FeedbackResponse
 
 
+class UserType(DjangoObjectType):
+    username = graphene.String()
+    rating = graphene.Float()
+
+
 class FeedbackGroupType(DjangoObjectType):
     class Meta:
         model = FeedbackGroup
@@ -201,8 +206,20 @@ class RateFeedbackResponse(graphene.Mutation):
 
 
 class Query(graphene.ObjectType):
+    user_details = graphene.UserType
     feedback_requests = graphene.List(FeedbackRequestType)
     feedback_groups = graphene.List(FeedbackGroupType)
+
+    def resolve_user_details(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+
+        return None # TODO return feedback_groups_user properly
 
     def resolve_feedback_requests(self, info):
         return FeedbackRequest.objects.all()
