@@ -10,16 +10,6 @@ from feedbackgroups.feedbackgroups.models import FeedbackRequest
 from feedbackgroups.feedbackgroups.models import FeedbackResponse
 
 
-class UserType(DjangoObjectType):
-    username = graphene.String()
-    rating = graphene.Float()
-
-
-class FeedbackGroupType(DjangoObjectType):
-    class Meta:
-        model = FeedbackGroup
-
-
 class FeedbackRequestType(DjangoObjectType):
     class Meta:
         model = FeedbackRequest
@@ -30,6 +20,22 @@ class FeedbackResponseType(DjangoObjectType):
         model = FeedbackResponse
 
 
+class UserType(graphene.ObjectType):
+    username = graphene.String()
+    rating = graphene.Float()
+
+
+class FeedbackGroupType(graphene.ObjectType):
+    id = graphene.Int()
+    name = graphene.String()
+    soundcloud_url = graphene.String()
+    members = graphene.Int()
+    # User's feedback responses for other group member's requests 
+    feedback_responses = graphene.List(FeedbackResponseType)
+    # Feedback received by the user; only sent once user has completed all feedbackReponses
+    user_feedback_responses = graphene.List(FeedbackResponseType)
+
+
 class RegisterUser(graphene.Mutation):
 
     class Arguments:
@@ -38,22 +44,18 @@ class RegisterUser(graphene.Mutation):
         password_repeat = graphene.String(required=True)
 
     success = graphene.Boolean()
-    errors = graphene.List(graphene.String)
+    error = graphene.String()
 
     def mutate(self, info, email, password, password_repeat):
         if password == password_repeat:
-            try:
-                user = FeedbackGroupsUser.create(
-                    email=email,
-                    password=password
-                )
-                user.save()
-                return RegisterUser(success=bool(user.id))
-            except Exception as e:
-                errors = ["email", e]
-                return RegisterUser(success=False, errors=errors)
-        errors = ["password", "Passwords don't match."]
-        return RegisterUser(success=False, errors=errors)
+            user = FeedbackGroupsUser.create(
+                email=email,
+                password=password
+            )
+            user.save()
+            return RegisterUser(success=bool(user.id))
+        error = "Passwords don't match."
+        return RegisterUser(success=False, error=error)
 
 
 class CreateFeedbackRequest(graphene.Mutation):
@@ -65,7 +67,7 @@ class CreateFeedbackRequest(graphene.Mutation):
     success = graphene.Boolean()
     error = graphene.String()
 
-    def mutate(self, info, soundcloud_url, feedback_prompt):
+    def mutate(self, info, soundcloud_url, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
             return CreateFeedbackRequest(
@@ -141,12 +143,12 @@ class SubmitFeedbackResponse(graphene.Mutation):
         feedback = graphene.String(required=True)
 
     success = graphene.Boolean()
-    errors = graphene.List(graphene.String)
+    error = graphene.String()
 
     def mutate(self, info, feedback_response_id, feedback):
         user = info.context.user
         if user.is_anonymous:
-            return SaveFeedbackResponse(success=False, errors=['Not logged in'])
+            return SaveFeedbackResponse(success=False, error='Not logged in')
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
@@ -158,16 +160,16 @@ class SubmitFeedbackResponse(graphene.Mutation):
         ).first()
 
         if not feedback_response:
-            return SaveFeedbackResponse(success=False, errors=['Invalid feedback_response_id'])
+            return SaveFeedbackResponse(success=False, error='Invalid feedback_response_id')
 
         if feedback_response.submitted:
-            return SaveFeedbackResponse(success=False, errors=['Feedback has already been submitted'])
+            return SaveFeedbackResponse(success=False, error='Feedback has already been submitted')
 
         feedback_response.feedback = feedback
         feedback_response.submitted = True
         feedback_response.save()
 
-        return CreateFeedbackRequest(success=True, errors=None)
+        return CreateFeedbackRequest(success=True, error=None)
 
 
 class RateFeedbackResponse(graphene.Mutation):
@@ -177,12 +179,12 @@ class RateFeedbackResponse(graphene.Mutation):
         rating = graphene.Int(required=True)
 
     success = graphene.Boolean()
-    errors = graphene.List(graphene.String)
+    error = graphene.String()
 
     def mutate(self, info, feedback_response_id, rating):
         user = info.context.user
         if user.is_anonymous:
-            return SaveFeedbackResponse(success=False, errors=['Not logged in'])
+            return SaveFeedbackResponse(success=False, error='Not logged in')
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
@@ -194,20 +196,61 @@ class RateFeedbackResponse(graphene.Mutation):
         ).first()
 
         if not feedback_response:
-            return SaveFeedbackResponse(success=False, errors=['Invalid feedback_response_id'])
+            return SaveFeedbackResponse(success=False, error='Invalid feedback_response_id')
 
         if feedback_response.rating:
-            return SaveFeedbackResponse(success=False, errors=['Feedback has already been rated'])
+            return SaveFeedbackResponse(success=False, error='Feedback has already been rated')
 
         feedback_response.rating = rating
         feedback_response.save()
 
-        return CreateFeedbackRequest(success=True, errors=None)
+        return CreateFeedbackRequest(success=True, error=None)
+
+
+def format_feedback_group(feedback_group, feedback_groups_user):
+    user_feedback_request = [
+        feedback_request
+        for feedback_request in feedback_group.feedback_requests.all()
+        if feedback_request.user == feedback_groups_user
+    ][0]
+
+    feedback_requests_for_user = [
+        feedback_request
+        for feedback_request in feedback_group.feedback_requests.all()
+        if feedback_request.user != feedback_groups_user
+    ]
+
+    feedback_responses = set()
+    for feedback_request in feedback_requests_for_user:
+        for feedback_response in feedback_request.feedback_responses.all():
+            if feedback_response.user == feedback_groups_user:
+                feedback_responses.add(feedback_response)
+
+    # If user has responded to all requests, find user's request and get responses
+    user_feedback_responses = None
+    if all([feedback_response.submitted for feedback_response in feedback_responses]):
+        # Only returned submitted responses
+        user_feedback_responses = user_feedback_request.feedback_responses.filter(
+            submitted=True,
+        ).all()
+
+    return FeedbackGroupType(
+        id=feedback_group.id,
+        name=feedback_group.name,
+        soundcloud_url=user_feedback_request.soundcloud_url,
+        members=feedback_group.feedback_requests.count(),
+        feedback_responses=feedback_responses,
+        user_feedback_responses=user_feedback_responses,
+    )
 
 
 class Query(graphene.ObjectType):
-    user_details = graphene.UserType
-    feedback_requests = graphene.List(FeedbackRequestType)
+    user_details = graphene.Field(UserType)
+
+    feedback_group = graphene.Field(
+        FeedbackGroupType,
+        feedback_group_id=graphene.Int(required=True),
+    )
     feedback_groups = graphene.List(FeedbackGroupType)
 
     def resolve_user_details(self, info):
@@ -219,10 +262,31 @@ class Query(graphene.ObjectType):
             user=user,
         ).first()
 
-        return None # TODO return feedback_groups_user properly
+        # Only show user rating if a rating has been assigned
+        rating = None
+        if feedback_groups_user.rating:
+            rating = feedback_groups_user.rating
 
-    def resolve_feedback_requests(self, info):
-        return FeedbackRequest.objects.all()
+        return UserType(
+            username=user.username,
+            rating=rating,
+        )
+
+    def resolve_feedback_group(self, info, feedback_group_id):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+        
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+
+        feedback_group =  FeedbackGroup.objects.filter(
+            id=feedback_group_id,
+        ).first()
+
+        return format_feedback_group(feedback_group, feedback_groups_user)
+
 
     def resolve_feedback_groups(self, info):
         user = info.context.user
@@ -235,11 +299,14 @@ class Query(graphene.ObjectType):
 
         feedback_requests = FeedbackRequest.objects.filter(
             user=feedback_groups_user,
+        ).order_by(
+            '-time_created'
         ).all()
 
         return [
-            feedback_request.feedback_group
+            format_feedback_group(feedback_request.feedback_group, feedback_groups_user)
             for feedback_request in feedback_requests
+            if feedback_request.feedback_group
         ]
 
 

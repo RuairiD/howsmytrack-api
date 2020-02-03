@@ -1,7 +1,6 @@
 import graphene
 import graphql_jwt
 
-import feedbackgroups.feedbackgroups.mutations
 import feedbackgroups.feedbackgroups.schema
 
 

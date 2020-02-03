@@ -50,7 +50,7 @@ class FeedbackRequest(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.user} request for {self.soundcloud_url}'
+        return f'{self.user}\'s request for {self.soundcloud_url}'
 
 
 class FeedbackResponse(models.Model):
@@ -64,7 +64,10 @@ class FeedbackResponse(models.Model):
         related_name='feedback_responses',
         on_delete=models.CASCADE
     )
-    feedback = models.TextField()
+    feedback = models.TextField(
+        blank=True,
+        null=True,
+    )
     submitted = models.BooleanField(default=False)
     rating = models.PositiveIntegerField(
         blank=True,
@@ -76,5 +79,4 @@ class FeedbackResponse(models.Model):
     )
 
     def __str__(self):
-        return f'{self.user} responded: {self.feedback}'
-
+        return f'{self.user} responded: "{self.feedback}" to {self.feedback_request}'
