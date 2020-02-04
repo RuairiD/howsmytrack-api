@@ -23,9 +23,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'qoocdg(+ti7!tf-afhyg9619^3h8fl*o+q&4@1y7y1rt%k^4m+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+RUNNING_LOCALLY = True # Used to decide whether to use prod or sqlite db
+DEBUG = False
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['localhost:8000', 'feedbackgroups.herokuapp.com']
 
 
 # Application definition
@@ -85,15 +87,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'feedbackgroups.wsgi.application'
 
-CORS_ORIGIN_ALLOW_ALL = True #TODO change this lol
+CORS_ORIGIN_WHITELIST = [
+    "https://feedbackgroups.herokuapp.com",
+    "http://localhost:8000",
+]
 CORS_ALLOW_CREDENTIALS = True
 
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {}
-DATABASES['default'] = dj_database_url.config(conn_max_age=600)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
+import dj_database_url
+if not RUNNING_LOCALLY:
+    DATABASES = {}
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
