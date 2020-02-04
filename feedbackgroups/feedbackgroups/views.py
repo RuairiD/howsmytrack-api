@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from django.views.generic import View
+from django.http import HttpResponse
 
-# Create your views here.
+
+def logout(request):
+    response = HttpResponse('Cookies Deleted')
+    response.delete_cookie('JWT', path='/')
+    return response
