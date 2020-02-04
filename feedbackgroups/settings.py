@@ -20,11 +20,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'qoocdg(+ti7!tf-afhyg9619^3h8fl*o+q&4@1y7y1rt%k^4m+'
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 RUNNING_LOCALLY = False # Used to decide whether to use prod or sqlite db
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = [
