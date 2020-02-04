@@ -23,11 +23,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'qoocdg(+ti7!tf-afhyg9619^3h8fl*o+q&4@1y7y1rt%k^4m+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-RUNNING_LOCALLY = True # Used to decide whether to use prod or sqlite db
-DEBUG = False
+RUNNING_LOCALLY = False # Used to decide whether to use prod or sqlite db
+DEBUG = True
 
 
-ALLOWED_HOSTS = ['localhost:8000', 'feedbackgroups.herokuapp.com']
+ALLOWED_HOSTS = [
+    'localhost:8000',
+    'localhost:3000',
+    'feedbackgroups.herokuapp.com'
+]
 
 
 # Application definition
@@ -88,8 +92,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'feedbackgroups.wsgi.application'
 
 CORS_ORIGIN_WHITELIST = [
-    "https://feedbackgroups.herokuapp.com",
-    "http://localhost:8000",
+    'https://feedbackgroups.herokuapp.com',
+    'http://localhost:3000',
+    'http://localhost:8000',
 ]
 CORS_ALLOW_CREDENTIALS = True
 
