@@ -52,6 +52,9 @@ class Command(BaseCommand):
         feedback_group = FeedbackGroup(name='test replace lol')
         feedback_group.save()
 
+        feedback_group.name = f'Group #{feedback_group.id}'
+        feedback_group.save()
+
         for feedback_request in feedback_requests:
             feedback_request.feedback_group = feedback_group
             feedback_request.save()
