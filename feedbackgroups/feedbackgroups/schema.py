@@ -80,6 +80,8 @@ class CreateFeedbackRequest(graphene.Mutation):
         ).first()
     
         # Only create a new request if user hasn't created one in the past 24 hours
+        # or if the user has an outstanding, ungrouped request (should only happen
+        # if user's request is the only one submitted :cry: )
         date_from = timezone.now() - datetime.timedelta(days=1)
         recent_requests = FeedbackRequest.objects.filter(
             user=feedback_groups_user,
@@ -89,6 +91,16 @@ class CreateFeedbackRequest(graphene.Mutation):
             return CreateFeedbackRequest(
                 success=False,
                 error='Already requested within 24 hours',
+            )
+        
+        unassigned_requests = FeedbackRequest.objects.filter(
+            user=feedback_groups_user,
+            feedback_group=None,
+        ).count()
+        if unassigned_requests > 0:
+            return CreateFeedbackRequest(
+                success=False,
+                error='You have an unassigned feedback request. Once that request has been assigned to a feedback group, you will be eligible to submit another request.',
             )
         
         feedback_request = FeedbackRequest(
@@ -166,6 +178,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
             return SaveFeedbackResponse(success=False, error='Feedback has already been submitted')
 
         feedback_response.feedback = feedback
+        feedback_response.time_submitted = timezone.now()
         feedback_response.submitted = True
         feedback_response.save()
 

@@ -68,6 +68,10 @@ class FeedbackResponse(models.Model):
         blank=True,
         null=True,
     )
+    time_submitted = models.DateTimeField(
+        blank=True,
+        null=True,
+    )
     submitted = models.BooleanField(default=False)
     rating = models.PositiveIntegerField(
         blank=True,
