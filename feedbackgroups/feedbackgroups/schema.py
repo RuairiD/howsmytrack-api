@@ -1,13 +1,21 @@
 import datetime
 
 import graphene
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
+from django.core.validators import URLValidator
+from django.db import IntegrityError
 from django.utils import timezone
+
 from graphene_django.types import DjangoObjectType
 
 from feedbackgroups.feedbackgroups.models import FeedbackGroupsUser
 from feedbackgroups.feedbackgroups.models import FeedbackGroup
 from feedbackgroups.feedbackgroups.models import FeedbackRequest
 from feedbackgroups.feedbackgroups.models import FeedbackResponse
+
+
+INVALID_SOUNDCLOUD_URL_MESSAGE = 'Please provide a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks).'
 
 
 class FeedbackRequestType(DjangoObjectType):
@@ -47,16 +55,37 @@ class RegisterUser(graphene.Mutation):
     error = graphene.String()
 
     def mutate(self, info, email, password, password_repeat):
-        if password == password_repeat:
-            user = FeedbackGroupsUser.create(
-                email=email,
-                password=password
-            )
-            user.save()
-            return RegisterUser(success=bool(user.id))
-        error = "Passwords don't match."
-        return RegisterUser(success=False, error=error)
+        validator = EmailValidator()
+        try:
+            validator(email)
+        except ValidationError:
+            return RegisterUser(success=False, error="Please provide a valid email address.")
 
+        if password == password_repeat:
+            try:
+                user = FeedbackGroupsUser.create(
+                    email=email,
+                    password=password
+                )
+                user.save()
+                return RegisterUser(success=bool(user.id))
+            except IntegrityError:
+                return RegisterUser(success=False, error="An account for that email address already exists.")
+        return RegisterUser(success=False, error="Passwords don't match.")
+
+
+def validate_soundcloud_url(soundcloud_url):
+    url_validator = URLValidator()
+    try:
+        url_validator(soundcloud_url)
+    except ValidationError:
+        raise ValidationError(
+            message=INVALID_SOUNDCLOUD_URL_MESSAGE,
+        )
+    if 'https://soundcloud.com/' not in soundcloud_url:
+        raise ValidationError(
+            message=INVALID_SOUNDCLOUD_URL_MESSAGE,
+        )
 
 class CreateFeedbackRequest(graphene.Mutation):
 
@@ -72,27 +101,25 @@ class CreateFeedbackRequest(graphene.Mutation):
         if user.is_anonymous:
             return CreateFeedbackRequest(
                 success=False,
-                error='Not logged in',
+                error='Not logged in.',
+            )
+
+        # Validate the soundcloud url
+        try:
+            validate_soundcloud_url(soundcloud_url)
+        except ValidationError as e:
+            return CreateFeedbackRequest(
+                success=False,
+                error=e.message,
             )
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
     
-        # Only create a new request if user hasn't created one in the past 24 hours
-        # or if the user has an outstanding, ungrouped request (should only happen
-        # if user's request is the only one submitted :cry: )
-        date_from = timezone.now() - datetime.timedelta(days=1)
-        recent_requests = FeedbackRequest.objects.filter(
-            user=feedback_groups_user,
-            time_created__gte=date_from
-        ).count()
-        if recent_requests > 0:
-            return CreateFeedbackRequest(
-                success=False,
-                error='Already requested within 24 hours',
-            )
-        
+        # Only create a new request if the user has an outstanding, ungrouped request
+        # (should only happen if user's request is from within the last 24 hours or
+        # the request is the only one submitted :cry: )
         unassigned_requests = FeedbackRequest.objects.filter(
             user=feedback_groups_user,
             feedback_group=None,
@@ -101,6 +128,18 @@ class CreateFeedbackRequest(graphene.Mutation):
             return CreateFeedbackRequest(
                 success=False,
                 error='You have an unassigned feedback request. Once that request has been assigned to a feedback group, you will be eligible to submit another request.',
+            )
+
+        # Reject requests for the same URL (if the other submission hasn't been grouped yet)
+        # This prevents users creating multiple accounts to request the same track.
+        existing_track_requests = FeedbackRequest.objects.filter(
+            soundcloud_url=soundcloud_url,
+            feedback_group=None,
+        ).count()
+        if existing_track_requests > 0:
+            return CreateFeedbackRequest(
+                success=False,
+                error='A request for this track is already pending.',
             )
         
         feedback_request = FeedbackRequest(
