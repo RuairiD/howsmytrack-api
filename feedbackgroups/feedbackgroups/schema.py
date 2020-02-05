@@ -18,9 +18,10 @@ from feedbackgroups.feedbackgroups.models import FeedbackResponse
 INVALID_SOUNDCLOUD_URL_MESSAGE = 'Please provide a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks).'
 
 
-class FeedbackRequestType(DjangoObjectType):
-    class Meta:
-        model = FeedbackRequest
+class FeedbackRequestType(graphene.ObjectType):
+    id = graphene.Int()
+    soundcloud_url = graphene.String()
+    feedback_prompt = graphene.String()
 
 
 class FeedbackResponseType(DjangoObjectType):
@@ -36,7 +37,9 @@ class UserType(graphene.ObjectType):
 class FeedbackGroupType(graphene.ObjectType):
     id = graphene.Int()
     name = graphene.String()
+    # The URL submitted by the logged in user.
     soundcloud_url = graphene.String()
+    # The number of users in the group.
     members = graphene.Int()
     # User's feedback responses for other group member's requests 
     feedback_responses = graphene.List(FeedbackResponseType)
@@ -150,6 +153,65 @@ class CreateFeedbackRequest(graphene.Mutation):
         feedback_request.save()
 
         return CreateFeedbackRequest(success=True, error=None)
+
+
+class EditFeedbackRequest(graphene.Mutation):
+
+    class Arguments:
+        feedback_request_id = graphene.Int(required=True)
+        soundcloud_url = graphene.String(required=False)
+        feedback_prompt = graphene.String(required=False)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def mutate(self, info, feedback_request_id, soundcloud_url, feedback_prompt=None):
+        user = info.context.user
+        if user.is_anonymous:
+            return EditFeedbackRequest(
+                success=False,
+                error='Not logged in.',
+            )
+
+        # Validate the soundcloud url
+        try:
+            validate_soundcloud_url(soundcloud_url)
+        except ValidationError as e:
+            return EditFeedbackRequest(
+                success=False,
+                error=e.message,
+            )
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+    
+        # Reject the edit if the user does not own the request (or if it doesn't exist)
+        feedback_request = FeedbackRequest.objects.filter(
+            user=feedback_groups_user,
+            id=feedback_request_id,
+        ).first()
+        if not feedback_request:
+            return EditFeedbackRequest(
+                success=False,
+                error='You are not the owner of this feedback request.',
+            )
+
+        # Reject the edit if the request has already been assigned to a group.
+        if feedback_request.feedback_group:
+            return EditFeedbackRequest(
+                success=False,
+                error='This request has already been assigned to a feedback group and cannot be edited.',
+            )
+        
+        if soundcloud_url:
+            feedback_request.soundcloud_url = soundcloud_url
+        # Allow empty feedback prompt
+        if feedback_prompt is not None:
+            feedback_request.feedback_prompt = feedback_prompt
+        feedback_request.save()
+
+        return EditFeedbackRequest(success=True, error=None)
 
 
 class SaveFeedbackResponse(graphene.Mutation):
@@ -305,6 +367,8 @@ class Query(graphene.ObjectType):
     )
     feedback_groups = graphene.List(FeedbackGroupType)
 
+    unassigned_request = graphene.Field(FeedbackRequestType)
+
     def resolve_user_details(self, info):
         user = info.context.user
         if user.is_anonymous:
@@ -361,10 +425,34 @@ class Query(graphene.ObjectType):
             if feedback_request.feedback_group
         ]
 
+    def resolve_unassigned_request(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+        
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+
+        feedback_request =  FeedbackRequest.objects.filter(
+            user=feedback_groups_user,
+            feedback_group__isnull=True,
+        ).first()
+
+        if not feedback_request:
+            return None
+
+        return FeedbackRequestType(
+            id=feedback_request.id,
+            soundcloud_url=feedback_request.soundcloud_url,
+            feedback_prompt=feedback_request.feedback_prompt,
+        )
+
 
 class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
     create_feedback_request = CreateFeedbackRequest.Field()
+    edit_feedback_request = EditFeedbackRequest.Field()
     save_feedback_response = SaveFeedbackResponse.Field()
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
