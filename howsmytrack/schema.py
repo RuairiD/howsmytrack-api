@@ -1,13 +1,13 @@
 import graphene
 import graphql_jwt
 
-import feedbackgroups.feedbackgroups.schema
+import howsmytrack.core.schema
 
 
-class Query(feedbackgroups.feedbackgroups.schema.Query, graphene.ObjectType):
+class Query(howsmytrack.core.schema.Query, graphene.ObjectType):
     pass
 
-class Mutation(feedbackgroups.feedbackgroups.schema.Mutation, graphene.ObjectType):
+class Mutation(howsmytrack.core.schema.Mutation, graphene.ObjectType):
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()

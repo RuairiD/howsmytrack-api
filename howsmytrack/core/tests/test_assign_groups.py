@@ -1,10 +1,10 @@
 from django.core.management import call_command
 from django.test import TestCase
 
-from feedbackgroups.feedbackgroups.models import FeedbackGroupsUser
-from feedbackgroups.feedbackgroups.models import FeedbackGroup
-from feedbackgroups.feedbackgroups.models import FeedbackRequest
-from feedbackgroups.feedbackgroups.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackGroupsUser
+from howsmytrack.core.models import FeedbackGroup
+from howsmytrack.core.models import FeedbackRequest
+from howsmytrack.core.models import FeedbackResponse
 
 
 USER_ACCOUNTS = {

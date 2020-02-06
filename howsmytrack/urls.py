@@ -1,4 +1,4 @@
-"""feedbackgroups URL Configuration
+"""howsmytrack URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -19,13 +19,13 @@ from django.views.decorators.csrf import csrf_exempt
 from graphene_django.views import GraphQLView
 from graphql_jwt.decorators import jwt_cookie
 
-import feedbackgroups.settings
-from feedbackgroups.feedbackgroups.views import logout
+import howsmytrack.settings
+from howsmytrack.core.views import logout
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('graphql/', csrf_exempt(jwt_cookie(GraphQLView.as_view(
-        graphiql=feedbackgroups.settings.DEBUG
+        graphiql=howsmytrack.settings.DEBUG
     )))),
     path('logout/', logout),
 ]

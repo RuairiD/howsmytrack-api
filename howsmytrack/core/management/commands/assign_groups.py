@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
-from feedbackgroups.feedbackgroups.models import FeedbackGroup
-from feedbackgroups.feedbackgroups.models import FeedbackRequest
-from feedbackgroups.feedbackgroups.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackGroup
+from howsmytrack.core.models import FeedbackRequest
+from howsmytrack.core.models import FeedbackResponse
 
 FEEDBACK_GROUP_SIZE = 4
 # Request counts of 2, 5 and 7 are weird because they're prime numbers

@@ -10,10 +10,10 @@ from django.utils import timezone
 
 from graphene_django.types import DjangoObjectType
 
-from feedbackgroups.feedbackgroups.models import FeedbackGroupsUser
-from feedbackgroups.feedbackgroups.models import FeedbackGroup
-from feedbackgroups.feedbackgroups.models import FeedbackRequest
-from feedbackgroups.feedbackgroups.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackGroupsUser
+from howsmytrack.core.models import FeedbackGroup
+from howsmytrack.core.models import FeedbackRequest
+from howsmytrack.core.models import FeedbackResponse
 
 
 INVALID_SOUNDCLOUD_URL_MESSAGE = 'Please provide a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks).'

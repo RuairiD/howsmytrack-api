@@ -1,9 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
-from feedbackgroups.feedbackgroups.models import FeedbackGroupsUser
-from feedbackgroups.feedbackgroups.models import FeedbackGroup
-from feedbackgroups.feedbackgroups.models import FeedbackRequest
-from feedbackgroups.feedbackgroups.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackGroupsUser
+from howsmytrack.core.models import FeedbackGroup
+from howsmytrack.core.models import FeedbackRequest
+from howsmytrack.core.models import FeedbackResponse
 
 MIN_RATINGS_TO_CONSIDER = 5
 MAX_RATINGS_TO_CONSIDER = 15

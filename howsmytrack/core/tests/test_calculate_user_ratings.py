@@ -4,12 +4,12 @@ from datetime import datetime
 from django.core.management import call_command
 from django.test import TestCase
 
-from feedbackgroups.feedbackgroups.management.commands.calculate_user_ratings import MIN_RATINGS_TO_CONSIDER
-from feedbackgroups.feedbackgroups.management.commands.calculate_user_ratings import MAX_RATINGS_TO_CONSIDER
-from feedbackgroups.feedbackgroups.models import FeedbackGroupsUser
-from feedbackgroups.feedbackgroups.models import FeedbackGroup
-from feedbackgroups.feedbackgroups.models import FeedbackRequest
-from feedbackgroups.feedbackgroups.models import FeedbackResponse
+from howsmytrack.core.management.commands.calculate_user_ratings import MIN_RATINGS_TO_CONSIDER
+from howsmytrack.core.management.commands.calculate_user_ratings import MAX_RATINGS_TO_CONSIDER
+from howsmytrack.core.models import FeedbackGroupsUser
+from howsmytrack.core.models import FeedbackGroup
+from howsmytrack.core.models import FeedbackRequest
+from howsmytrack.core.models import FeedbackResponse
 
 
 EMAIL_DOMAIN = '@brightonandhovealbion.com',
