@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -121,6 +122,12 @@ else:
     DATABASES = {
         'default': dj_database_url.config(conn_max_age=600)
     }
+
+GRAPHQL_JWT = {
+    'JWT_VERIFY_EXPIRATION': True,
+    'JWT_EXPIRATION_DELTA': timedelta(hours=72),
+    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

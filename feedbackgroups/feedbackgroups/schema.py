@@ -1,6 +1,7 @@
 import datetime
 
 import graphene
+import graphql_jwt
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.core.validators import URLValidator
@@ -45,6 +46,28 @@ class FeedbackGroupType(graphene.ObjectType):
     feedback_responses = graphene.List(FeedbackResponseType)
     # Feedback received by the user; only sent once user has completed all feedbackReponses
     user_feedback_responses = graphene.List(FeedbackResponseType)
+
+
+class RefreshTokenFromCookie(graphql_jwt.Refresh):
+    """
+    The built-in graphql_jwt.Refresh mutation requires the token to be passed as
+    a parameter. This custom mutation reads the token from HttpOnly cookies
+    instead to prevent frontends having to store the cookie somewhere else for access.
+    """
+    class Arguments:
+        pass
+
+    @classmethod
+    def mutate(cls, *args, **kwargs):
+        cookies = args[1].context.COOKIES
+        if cookies and 'JWT' in cookies:
+            kwargs['token'] = cookies['JWT']
+            return super(RefreshTokenFromCookie, cls).mutate(
+                *args,
+                **kwargs,
+            )
+        # If no token cookie exists, nothing to do.
+        return None
 
 
 class RegisterUser(graphene.Mutation):
@@ -456,3 +479,5 @@ class Mutation(graphene.ObjectType):
     save_feedback_response = SaveFeedbackResponse.Field()
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
+
+    refresh_token_from_cookie = RefreshTokenFromCookie.Field()
