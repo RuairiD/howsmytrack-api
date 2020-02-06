@@ -25,9 +25,12 @@ class FeedbackRequestType(graphene.ObjectType):
     feedback_prompt = graphene.String()
 
 
-class FeedbackResponseType(DjangoObjectType):
-    class Meta:
-        model = FeedbackResponse
+class FeedbackResponseType(graphene.ObjectType):
+    id = graphene.Int()
+    feedback_request = graphene.Field(FeedbackRequestType)
+    feedback = graphene.String()
+    submitted = graphene.Boolean()
+    rating = graphene.Int()
 
 
 class UserType(graphene.ObjectType):
