@@ -12,7 +12,7 @@ from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 
 
-EMAIL_DOMAIN = '@brightonandhovealbion.com',
+EMAIL_DOMAIN = '@brightonandhovealbion.com'
 
 
 class CalculateUserRatingsTest(TestCase):

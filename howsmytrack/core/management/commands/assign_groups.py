@@ -55,9 +55,12 @@ class Command(BaseCommand):
         feedback_group.name = f'Group #{feedback_group.id}'
         feedback_group.save()
 
+        requests_count = 0
+        responses_count = 0
         for feedback_request in feedback_requests:
             feedback_request.feedback_group = feedback_group
             feedback_request.save()
+            requests_count += 1
 
             # Create empty feedback responses for each request-user pairing in the group.
             for other_feedback_request in feedback_requests:
@@ -67,6 +70,11 @@ class Command(BaseCommand):
                         user=other_feedback_request.user,
                     )
                     feedback_response.save()
+                    responses_count += 1
+        
+        self.stdout.write(
+            f'Created {feedback_group.name} with {requests_count} requests and {responses_count} responses.',
+        )
 
     def handle(self, *args, **options):
         unassigned_feedback_requests = FeedbackRequest.objects.filter(
