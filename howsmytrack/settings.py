@@ -96,7 +96,7 @@ if DEBUG:
     CORS_ORIGIN_ALLOW_ALL = True
 else:
     CORS_ORIGIN_WHITELIST = [
-        'https://howsmytrack.com',
+        'https://www.howsmytrack.com',
         'https://howsmytrack-web.herokuapp.com',
     ]
 
