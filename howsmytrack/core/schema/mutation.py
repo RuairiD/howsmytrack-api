@@ -19,38 +19,6 @@ from howsmytrack.core.models import FeedbackResponse
 INVALID_SOUNDCLOUD_URL_MESSAGE = 'Please provide a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks).'
 
 
-class FeedbackRequestType(graphene.ObjectType):
-    id = graphene.Int()
-    soundcloud_url = graphene.String()
-    feedback_prompt = graphene.String()
-
-
-class FeedbackResponseType(graphene.ObjectType):
-    id = graphene.Int()
-    feedback_request = graphene.Field(FeedbackRequestType)
-    feedback = graphene.String()
-    submitted = graphene.Boolean()
-    rating = graphene.Int()
-
-
-class UserType(graphene.ObjectType):
-    username = graphene.String()
-    rating = graphene.Float()
-
-
-class FeedbackGroupType(graphene.ObjectType):
-    id = graphene.Int()
-    name = graphene.String()
-    # The URL submitted by the logged in user.
-    soundcloud_url = graphene.String()
-    # The number of users in the group.
-    members = graphene.Int()
-    # User's feedback responses for other group member's requests 
-    feedback_responses = graphene.List(FeedbackResponseType)
-    # Feedback received by the user; only sent once user has completed all feedbackReponses
-    user_feedback_responses = graphene.List(FeedbackResponseType)
-
-
 class RefreshTokenFromCookie(graphql_jwt.Refresh):
     """
     The built-in graphql_jwt.Refresh mutation requires the token to be passed as
@@ -347,134 +315,6 @@ class RateFeedbackResponse(graphene.Mutation):
         return CreateFeedbackRequest(success=True, error=None)
 
 
-def format_feedback_group(feedback_group, feedback_groups_user):
-    user_feedback_request = [
-        feedback_request
-        for feedback_request in feedback_group.feedback_requests.all()
-        if feedback_request.user == feedback_groups_user
-    ][0]
-
-    feedback_requests_for_user = [
-        feedback_request
-        for feedback_request in feedback_group.feedback_requests.all()
-        if feedback_request.user != feedback_groups_user
-    ]
-
-    feedback_responses = set()
-    for feedback_request in feedback_requests_for_user:
-        for feedback_response in feedback_request.feedback_responses.all():
-            if feedback_response.user == feedback_groups_user:
-                feedback_responses.add(feedback_response)
-
-    # If user has responded to all requests, find user's request and get responses
-    user_feedback_responses = None
-    if all([feedback_response.submitted for feedback_response in feedback_responses]):
-        # Only returned submitted responses
-        user_feedback_responses = user_feedback_request.feedback_responses.filter(
-            submitted=True,
-        ).all()
-
-    return FeedbackGroupType(
-        id=feedback_group.id,
-        name=feedback_group.name,
-        soundcloud_url=user_feedback_request.soundcloud_url,
-        members=feedback_group.feedback_requests.count(),
-        feedback_responses=feedback_responses,
-        user_feedback_responses=user_feedback_responses,
-    )
-
-
-class Query(graphene.ObjectType):
-    user_details = graphene.Field(UserType)
-
-    feedback_group = graphene.Field(
-        FeedbackGroupType,
-        feedback_group_id=graphene.Int(required=True),
-    )
-    feedback_groups = graphene.List(FeedbackGroupType)
-
-    unassigned_request = graphene.Field(FeedbackRequestType)
-
-    def resolve_user_details(self, info):
-        user = info.context.user
-        if user.is_anonymous:
-            return None
-
-        feedback_groups_user = FeedbackGroupsUser.objects.filter(
-            user=user,
-        ).first()
-
-        # Only show user rating if a rating has been assigned
-        rating = None
-        if feedback_groups_user.rating:
-            rating = feedback_groups_user.rating
-
-        return UserType(
-            username=user.username,
-            rating=rating,
-        )
-
-    def resolve_feedback_group(self, info, feedback_group_id):
-        user = info.context.user
-        if user.is_anonymous:
-            return None
-        
-        feedback_groups_user = FeedbackGroupsUser.objects.filter(
-            user=user,
-        ).first()
-
-        feedback_group =  FeedbackGroup.objects.filter(
-            id=feedback_group_id,
-        ).first()
-
-        return format_feedback_group(feedback_group, feedback_groups_user)
-
-
-    def resolve_feedback_groups(self, info):
-        user = info.context.user
-        if user.is_anonymous:
-            return []
-        
-        feedback_groups_user = FeedbackGroupsUser.objects.filter(
-            user=user,
-        ).first()
-
-        feedback_requests = FeedbackRequest.objects.filter(
-            user=feedback_groups_user,
-        ).order_by(
-            '-time_created'
-        ).all()
-
-        return [
-            format_feedback_group(feedback_request.feedback_group, feedback_groups_user)
-            for feedback_request in feedback_requests
-            if feedback_request.feedback_group
-        ]
-
-    def resolve_unassigned_request(self, info):
-        user = info.context.user
-        if user.is_anonymous:
-            return None
-        
-        feedback_groups_user = FeedbackGroupsUser.objects.filter(
-            user=user,
-        ).first()
-
-        feedback_request =  FeedbackRequest.objects.filter(
-            user=feedback_groups_user,
-            feedback_group__isnull=True,
-        ).first()
-
-        if not feedback_request:
-            return None
-
-        return FeedbackRequestType(
-            id=feedback_request.id,
-            soundcloud_url=feedback_request.soundcloud_url,
-            feedback_prompt=feedback_request.feedback_prompt,
-        )
-
-
 class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
     create_feedback_request = CreateFeedbackRequest.Field()
@@ -482,5 +322,4 @@ class Mutation(graphene.ObjectType):
     save_feedback_response = SaveFeedbackResponse.Field()
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
-
     refresh_token_from_cookie = RefreshTokenFromCookie.Field()
