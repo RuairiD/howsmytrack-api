@@ -2,6 +2,7 @@ import datetime
 
 import graphene
 import graphql_jwt
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.core.validators import URLValidator
@@ -17,6 +18,9 @@ from howsmytrack.core.models import FeedbackResponse
 
 
 INVALID_SOUNDCLOUD_URL_MESSAGE = 'Please provide a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks).'
+
+
+INVALID_PASSWORD_MESSAGE = 'Please choose a more secure password. Your password must contain at least 8 characters, can’t be a commonly used password (e.g. "password") and can’t be entirely numeric.'
 
 
 class RefreshTokenFromCookie(graphql_jwt.Refresh):
@@ -59,6 +63,11 @@ class RegisterUser(graphene.Mutation):
             return RegisterUser(success=False, error="Please provide a valid email address.")
 
         if password == password_repeat:
+            try:
+                validate_password(password)
+            except ValidationError as e:
+                return RegisterUser(success=False, error=INVALID_PASSWORD_MESSAGE)
+
             try:
                 user = FeedbackGroupsUser.create(
                     email=email,
