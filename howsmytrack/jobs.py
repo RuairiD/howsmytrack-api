@@ -12,18 +12,18 @@ scheduler.add_jobstore(DjangoJobStore(), "default")
 JOB_HOUR = 2
 
 
-@register_job(scheduler, 'cron', hour=1, minute=18)
-def assign_groups():
-    print('Starting: assign_groups')
-    call_command('assign_groups')
-    print('Done: assign_groups')
-
-
-@register_job(scheduler, 'cron', hour=1, minute=18)
+@register_job(scheduler, 'cron', hour=JOB_HOUR)
 def calculate_user_ratings():
     print('Starting: calculate_user_ratings')
     call_command('calculate_user_ratings')
     print('Done: calculate_user_ratings')
+
+
+@register_job(scheduler, 'cron', hour=JOB_HOUR, minute=30)
+def assign_groups():
+    print('Starting: assign_groups')
+    call_command('assign_groups')
+    print('Done: assign_groups')
 
 
 register_events(scheduler)
