@@ -15,6 +15,7 @@ from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
+from howsmytrack.core.models import MediaTypeChoice
 
 
 INVALID_SOUNDCLOUD_URL_MESSAGE = 'Please provide a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks).'
@@ -96,13 +97,13 @@ def validate_soundcloud_url(soundcloud_url):
 class CreateFeedbackRequest(graphene.Mutation):
 
     class Arguments:
-        soundcloud_url = graphene.String(required=True)
+        media_url = graphene.String(required=True)
         feedback_prompt = graphene.String(required=False)
 
     success = graphene.Boolean()
     error = graphene.String()
 
-    def mutate(self, info, soundcloud_url, feedback_prompt=None):
+    def mutate(self, info, media_url, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
             return CreateFeedbackRequest(
@@ -112,7 +113,7 @@ class CreateFeedbackRequest(graphene.Mutation):
 
         # Validate the soundcloud url
         try:
-            validate_soundcloud_url(soundcloud_url)
+            validate_soundcloud_url(media_url)
         except ValidationError as e:
             return CreateFeedbackRequest(
                 success=False,
@@ -139,7 +140,7 @@ class CreateFeedbackRequest(graphene.Mutation):
         # Reject requests for the same URL (if the other submission hasn't been grouped yet)
         # This prevents users creating multiple accounts to request the same track.
         existing_track_requests = FeedbackRequest.objects.filter(
-            soundcloud_url=soundcloud_url,
+            media_url=media_url,
             feedback_group=None,
         ).count()
         if existing_track_requests > 0:
@@ -150,7 +151,8 @@ class CreateFeedbackRequest(graphene.Mutation):
         
         feedback_request = FeedbackRequest(
             user=feedback_groups_user,
-            soundcloud_url=soundcloud_url,
+            media_url=media_url,
+            media_type=MediaTypeChoice.SOUNDCLOUD,
             feedback_prompt=feedback_prompt,
         )
         feedback_request.save()
@@ -162,13 +164,13 @@ class EditFeedbackRequest(graphene.Mutation):
 
     class Arguments:
         feedback_request_id = graphene.Int(required=True)
-        soundcloud_url = graphene.String(required=False)
+        media_url = graphene.String(required=False)
         feedback_prompt = graphene.String(required=False)
 
     success = graphene.Boolean()
     error = graphene.String()
 
-    def mutate(self, info, feedback_request_id, soundcloud_url, feedback_prompt=None):
+    def mutate(self, info, feedback_request_id, media_url, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
             return EditFeedbackRequest(
@@ -178,7 +180,7 @@ class EditFeedbackRequest(graphene.Mutation):
 
         # Validate the soundcloud url
         try:
-            validate_soundcloud_url(soundcloud_url)
+            validate_soundcloud_url(media_url)
         except ValidationError as e:
             return EditFeedbackRequest(
                 success=False,
@@ -207,8 +209,8 @@ class EditFeedbackRequest(graphene.Mutation):
                 error='This request has already been assigned to a feedback group and cannot be edited.',
             )
         
-        if soundcloud_url:
-            feedback_request.soundcloud_url = soundcloud_url
+        if media_url:
+            feedback_request.media_url = media_url
         # Allow empty feedback prompt
         if feedback_prompt is not None:
             feedback_request.feedback_prompt = feedback_prompt

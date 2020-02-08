@@ -3,7 +3,8 @@ import graphene
 
 class FeedbackRequestType(graphene.ObjectType):
     id = graphene.Int()
-    soundcloud_url = graphene.String()
+    media_url = graphene.String()
+    media_type = graphene.String()
     feedback_prompt = graphene.String()
 
 
@@ -24,7 +25,8 @@ class FeedbackGroupType(graphene.ObjectType):
     id = graphene.Int()
     name = graphene.String()
     # The URL submitted by the logged in user.
-    soundcloud_url = graphene.String()
+    media_url = graphene.String()
+    media_type = graphene.String()
     # The number of users in the group.
     members = graphene.Int()
     # User's feedback responses for other group member's requests 

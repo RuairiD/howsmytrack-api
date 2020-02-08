@@ -31,7 +31,7 @@ class CalculateUserRatingsTest(TestCase):
         for i in range(0, MIN_RATINGS_TO_CONSIDER):
             feedback_request = FeedbackRequest(
                 user=self.users[i],
-                soundcloud_url='https://soundcloud.com/ruairidx/bruno',
+                media_url='https://soundcloud.com/ruairidx/bruno',
             )
             feedback_request.save()
             FeedbackResponse(
@@ -56,7 +56,7 @@ class CalculateUserRatingsTest(TestCase):
         for i in range(0, MIN_RATINGS_TO_CONSIDER - 1):
             feedback_request = FeedbackRequest(
                 user=self.users[i],
-                soundcloud_url='https://soundcloud.com/ruairidx/bruno',
+                media_url='https://soundcloud.com/ruairidx/bruno',
             )
             feedback_request.save()
             FeedbackResponse(
@@ -81,7 +81,7 @@ class CalculateUserRatingsTest(TestCase):
         for i in range(0, MAX_RATINGS_TO_CONSIDER * 2):
             feedback_request = FeedbackRequest(
                 user=self.users[i],
-                soundcloud_url='https://soundcloud.com/ruairidx/bruno',
+                media_url='https://soundcloud.com/ruairidx/bruno',
             )
             feedback_request.save()
             # Old rates will be good, new ratings will be a little worse.
