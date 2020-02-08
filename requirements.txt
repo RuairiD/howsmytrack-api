@@ -5,9 +5,11 @@ asgiref==3.2.3
 backcall==0.1.0
 decorator==4.4.1
 Django==3.0.2
+dj-database-url==0.5.0
 django-apscheduler==0.3.0
 django-cors-headers==3.2.1
 django-graphql-jwt==0.3.0
+django-heroku==0.3.1
 graphene==2.1.8
 graphene-django==2.8.0
 graphql-core==2.3.1
@@ -22,6 +24,7 @@ pexpect==4.8.0
 pickleshare==0.7.5
 promise==2.3
 prompt-toolkit==3.0.3
+psycopg2==2.8.4
 ptyprocess==0.6.0
 Pygments==2.5.2
 PyJWT==1.7.1
