@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator
@@ -47,6 +49,10 @@ class FeedbackGroup(models.Model):
         verbose_name_plural = 'FeedbackGroups'
 
 
+class MediaTypeChoice(Enum):
+    SOUNDCLOUD = 'Soundcloud'
+
+
 class FeedbackRequest(models.Model):
     """
     A request for feedback submitted by a user.
@@ -56,7 +62,11 @@ class FeedbackRequest(models.Model):
         related_name='feedback_requests',
         on_delete=models.CASCADE
     )
-    soundcloud_url = models.CharField(max_length=100)
+    media_url = models.CharField(max_length=100)
+    media_type = models.CharField(
+        max_length=32,
+        choices=[(tag, tag.value) for tag in MediaTypeChoice],
+    )
     feedback_prompt = models.TextField(
         blank=True,
         null=True,
@@ -71,7 +81,7 @@ class FeedbackRequest(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.user}\'s request for {self.soundcloud_url}'
+        return f'{self.user}\'s request for {self.media_url}'
 
     class Meta:
         verbose_name = 'FeedbackRequest'

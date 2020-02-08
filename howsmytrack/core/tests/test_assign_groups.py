@@ -39,7 +39,7 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                soundcloud_url='https://soundcloud.com/ruairidx/grey',
+                media_url='https://soundcloud.com/ruairidx/grey',
             ).save()
 
         call_command('assign_groups')
@@ -74,13 +74,13 @@ class AssignGroupsTest(TestCase):
             if user == users[0]:
                 FeedbackRequest(
                     user=user,
-                    soundcloud_url='https://soundcloud.com/ruairidx/grey',
+                    media_url='https://soundcloud.com/ruairidx/grey',
                     feedback_group=old_feedback_group,
                 ).save()
             else:
                 FeedbackRequest(
                     user=user,
-                    soundcloud_url='https://soundcloud.com/ruairidx/grey',
+                    media_url='https://soundcloud.com/ruairidx/grey',
                 ).save()
 
         call_command('assign_groups')
@@ -117,7 +117,7 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                soundcloud_url='https://soundcloud.com/ruairidx/grey',
+                media_url='https://soundcloud.com/ruairidx/grey',
             ).save()
 
         call_command('assign_groups')
@@ -166,7 +166,7 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                soundcloud_url='https://soundcloud.com/ruairidx/grey',
+                media_url='https://soundcloud.com/ruairidx/grey',
             ).save()
 
         call_command('assign_groups')

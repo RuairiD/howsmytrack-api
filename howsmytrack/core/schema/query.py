@@ -50,7 +50,8 @@ def format_feedback_group(feedback_group, feedback_groups_user):
     return FeedbackGroupType(
         id=feedback_group.id,
         name=feedback_group.name,
-        soundcloud_url=user_feedback_request.soundcloud_url,
+        media_url=user_feedback_request.media_url,
+        media_type=user_feedback_request.media_type,
         members=feedback_group.feedback_requests.count(),
         feedback_responses=feedback_responses,
         user_feedback_responses=user_feedback_responses,
@@ -143,6 +144,7 @@ class Query(graphene.ObjectType):
 
         return FeedbackRequestType(
             id=feedback_request.id,
-            soundcloud_url=feedback_request.soundcloud_url,
+            media_url=feedback_request.media_url,
+            media_type=feedback_request.media_type,
             feedback_prompt=feedback_request.feedback_prompt,
         )
