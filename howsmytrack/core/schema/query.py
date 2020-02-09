@@ -20,44 +20,6 @@ from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
 
 
-def format_feedback_group(feedback_group, feedback_groups_user):
-    user_feedback_request = [
-        feedback_request
-        for feedback_request in feedback_group.feedback_requests.all()
-        if feedback_request.user == feedback_groups_user
-    ][0]
-
-    feedback_requests_for_user = [
-        feedback_request
-        for feedback_request in feedback_group.feedback_requests.all()
-        if feedback_request.user != feedback_groups_user
-    ]
-
-    feedback_responses = set()
-    for feedback_request in feedback_requests_for_user:
-        for feedback_response in feedback_request.feedback_responses.all():
-            if feedback_response.user == feedback_groups_user:
-                feedback_responses.add(feedback_response)
-
-    # If user has responded to all requests, find user's request and get responses
-    user_feedback_responses = None
-    if all([feedback_response.submitted for feedback_response in feedback_responses]):
-        # Only returned submitted responses
-        user_feedback_responses = user_feedback_request.feedback_responses.filter(
-            submitted=True,
-        ).all()
-
-    return FeedbackGroupType(
-        id=feedback_group.id,
-        name=feedback_group.name,
-        media_url=user_feedback_request.media_url,
-        media_type=user_feedback_request.media_type,
-        members=feedback_group.feedback_requests.count(),
-        feedback_responses=feedback_responses,
-        user_feedback_responses=user_feedback_responses,
-    )
-
-
 class Query(graphene.ObjectType):
     user_details = graphene.Field(UserType)
 
@@ -101,7 +63,7 @@ class Query(graphene.ObjectType):
             id=feedback_group_id,
         ).first()
 
-        return format_feedback_group(feedback_group, feedback_groups_user)
+        return FeedbackGroupType.from_model(feedback_group, feedback_groups_user)
 
 
     def resolve_feedback_groups(self, info):
@@ -120,7 +82,7 @@ class Query(graphene.ObjectType):
         ).all()
 
         return [
-            format_feedback_group(feedback_request.feedback_group, feedback_groups_user)
+            FeedbackGroupType.from_model(feedback_request.feedback_group, feedback_groups_user)
             for feedback_request in feedback_requests
             if feedback_request.feedback_group
         ]
@@ -142,9 +104,4 @@ class Query(graphene.ObjectType):
         if not feedback_request:
             return None
 
-        return FeedbackRequestType(
-            id=feedback_request.id,
-            media_url=feedback_request.media_url,
-            media_type=feedback_request.media_type,
-            feedback_prompt=feedback_request.feedback_prompt,
-        )
+        return FeedbackRequestType.from_model(feedback_request)

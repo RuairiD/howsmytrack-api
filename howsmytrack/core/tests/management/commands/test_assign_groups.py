@@ -33,6 +33,22 @@ class AssignGroupsTest(TestCase):
             user.save()
             self.users.append(user)
 
+
+    def test_assign_groups_singleton(self):
+        # Use feedback requests equal to a multiple of 4 i.e. evenly sized groups
+        users = self.users[:1]
+        for user in users:
+            FeedbackRequest(
+                user=user,
+                media_url='https://soundcloud.com/ruairidx/grey',
+            ).save()
+
+        call_command('assign_groups')
+
+        # Assert no groups were created for just one user.
+        self.assertEqual(FeedbackGroup.objects.count(), 0)
+
+
     def test_assign_groups_even_groups(self):
         # Use feedback requests equal to a multiple of 4 i.e. evenly sized groups
         users = self.users[:4]

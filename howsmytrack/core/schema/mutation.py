@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.core.validators import URLValidator
 from django.db import IntegrityError
+from django.db import transaction
 from django.utils import timezone
 
 from graphene_django.types import DjangoObjectType
@@ -56,6 +57,12 @@ class RegisterUser(graphene.Mutation):
     success = graphene.Boolean()
     error = graphene.String()
 
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
     def mutate(self, info, email, password, password_repeat):
         validator = EmailValidator()
         try:
@@ -70,12 +77,13 @@ class RegisterUser(graphene.Mutation):
                 return RegisterUser(success=False, error=INVALID_PASSWORD_MESSAGE)
 
             try:
-                user = FeedbackGroupsUser.create(
-                    email=email,
-                    password=password
-                )
-                user.save()
-                return RegisterUser(success=bool(user.id))
+                with transaction.atomic():
+                    user = FeedbackGroupsUser.create(
+                        email=email,
+                        password=password
+                    )
+                    user.save()
+                    return RegisterUser(success=bool(user.id))
             except IntegrityError:
                 return RegisterUser(success=False, error="An account for that email address already exists.")
         return RegisterUser(success=False, error="Passwords don't match.")
@@ -107,6 +115,12 @@ class CreateFeedbackRequest(graphene.Mutation):
 
     success = graphene.Boolean()
     error = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
 
     def mutate(self, info, media_url, feedback_prompt=None):
         user = info.context.user
@@ -176,6 +190,12 @@ class EditFeedbackRequest(graphene.Mutation):
     success = graphene.Boolean()
     error = graphene.String()
 
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
     def mutate(self, info, feedback_request_id, media_url, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
@@ -227,41 +247,6 @@ class EditFeedbackRequest(graphene.Mutation):
         return EditFeedbackRequest(success=True, error=None)
 
 
-class SaveFeedbackResponse(graphene.Mutation):
-
-    class Arguments:
-        feedback_response_id = graphene.Int(required=True)
-        feedback = graphene.String(required=True)
-
-    success = graphene.Boolean()
-    errors = graphene.List(graphene.String)
-
-    def mutate(self, info, feedback_response_id, feedback):
-        user = info.context.user
-        if user.is_anonymous:
-            return SaveFeedbackResponse(success=False, errors=['Not logged in'])
-
-        feedback_groups_user = FeedbackGroupsUser.objects.filter(
-            user=user,
-        ).first()
-        
-        feedback_response = FeedbackResponse.objects.filter(
-            user=feedback_groups_user,
-            id=feedback_response_id,
-        ).first()
-
-        if not feedback_response:
-            return SaveFeedbackResponse(success=False, errors=['Invalid feedback_response_id'])
-
-        if feedback_response.submitted:
-            return SaveFeedbackResponse(success=False, errors=['Feedback has already been submitted'])
-
-        feedback_response.feedback = feedback
-        feedback_response.save()
-
-        return CreateFeedbackRequest(success=True, errors=None)
-
-
 class SubmitFeedbackResponse(graphene.Mutation):
 
     class Arguments:
@@ -271,10 +256,16 @@ class SubmitFeedbackResponse(graphene.Mutation):
     success = graphene.Boolean()
     error = graphene.String()
 
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
     def mutate(self, info, feedback_response_id, feedback):
         user = info.context.user
         if user.is_anonymous:
-            return SaveFeedbackResponse(success=False, error='Not logged in')
+            return SubmitFeedbackResponse(success=False, error='Not logged in.')
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
@@ -286,17 +277,17 @@ class SubmitFeedbackResponse(graphene.Mutation):
         ).first()
 
         if not feedback_response:
-            return SaveFeedbackResponse(success=False, error='Invalid feedback_response_id')
+            return SubmitFeedbackResponse(success=False, error='Invalid feedback_response_id')
 
         if feedback_response.submitted:
-            return SaveFeedbackResponse(success=False, error='Feedback has already been submitted')
+            return SubmitFeedbackResponse(success=False, error='Feedback has already been submitted')
 
         feedback_response.feedback = feedback
         feedback_response.time_submitted = timezone.now()
         feedback_response.submitted = True
         feedback_response.save()
 
-        return CreateFeedbackRequest(success=True, error=None)
+        return SubmitFeedbackResponse(success=True, error=None)
 
 
 class RateFeedbackResponse(graphene.Mutation):
@@ -308,10 +299,16 @@ class RateFeedbackResponse(graphene.Mutation):
     success = graphene.Boolean()
     error = graphene.String()
 
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
     def mutate(self, info, feedback_response_id, rating):
         user = info.context.user
         if user.is_anonymous:
-            return SaveFeedbackResponse(success=False, error='Not logged in')
+            return RateFeedbackResponse(success=False, error='Not logged in.')
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
@@ -323,22 +320,27 @@ class RateFeedbackResponse(graphene.Mutation):
         ).first()
 
         if not feedback_response:
-            return SaveFeedbackResponse(success=False, error='Invalid feedback_response_id')
+            return RateFeedbackResponse(success=False, error='Invalid feedback_response_id')
+
+        if not feedback_response.submitted:
+            return RateFeedbackResponse(success=False, error='This feedback has not been submitted and cannot be rated.')
 
         if feedback_response.rating:
-            return SaveFeedbackResponse(success=False, error='Feedback has already been rated')
+            return RateFeedbackResponse(success=False, error='Feedback has already been rated')
+
+        if rating < 1 or rating > 5:
+            return RateFeedbackResponse(success=False, error='Invalid rating')
 
         feedback_response.rating = rating
         feedback_response.save()
 
-        return CreateFeedbackRequest(success=True, error=None)
+        return RateFeedbackResponse(success=True, error=None)
 
 
 class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
     create_feedback_request = CreateFeedbackRequest.Field()
     edit_feedback_request = EditFeedbackRequest.Field()
-    save_feedback_response = SaveFeedbackResponse.Field()
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
     refresh_token_from_cookie = RefreshTokenFromCookie.Field()

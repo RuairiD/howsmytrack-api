@@ -1,0 +1,11 @@
+[report]
+exclude_lines =
+    pragma: no cover
+    def __str__
+
+# Exclude django-generated files and settings file
+omit =
+    howsmytrack/asgi.py
+    howsmytrack/jobs.py
+    howsmytrack/settings.py
+    howsmytrack/wsgi.py
