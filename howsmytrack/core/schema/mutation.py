@@ -18,7 +18,7 @@ from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import MediaTypeChoice
 
 
-INVALID_SOUNDCLOUD_URL_MESSAGE = 'Please provide a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks).'
+INVALID_MEDIA_URL_MESSAGE = 'Please provide any of the following: a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks), a shareable Google Drive URL of the form `https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz1234567/view` or a Dropbox URL of the form `https://www.dropbox.com/s/abcdefghijklmno/filename`'
 
 
 INVALID_PASSWORD_MESSAGE = 'Please choose a more secure password. Your password must contain at least 8 characters, can’t be a commonly used password (e.g. "password") and can’t be entirely numeric.'
@@ -81,18 +81,23 @@ class RegisterUser(graphene.Mutation):
         return RegisterUser(success=False, error="Passwords don't match.")
 
 
-def validate_soundcloud_url(soundcloud_url):
+def validate_media_url(media_url):
     url_validator = URLValidator()
     try:
-        url_validator(soundcloud_url)
+        url_validator(media_url)
     except ValidationError:
         raise ValidationError(
-            message=INVALID_SOUNDCLOUD_URL_MESSAGE,
+            message=INVALID_MEDIA_URL_MESSAGE,
         )
-    if 'https://soundcloud.com/' not in soundcloud_url:
-        raise ValidationError(
-            message=INVALID_SOUNDCLOUD_URL_MESSAGE,
-        )
+    if 'https://soundcloud.com/' in media_url:
+        return MediaTypeChoice.SOUNDCLOUD
+    if 'dropbox.com/' in media_url:
+        return MediaTypeChoice.DROPBOX
+    if 'drive.google.com/file' in media_url:
+        return MediaTypeChoice.GOOGLEDRIVE
+    raise ValidationError(
+        message=INVALID_MEDIA_URL_MESSAGE,
+    )
 
 class CreateFeedbackRequest(graphene.Mutation):
 
@@ -111,9 +116,10 @@ class CreateFeedbackRequest(graphene.Mutation):
                 error='Not logged in.',
             )
 
-        # Validate the soundcloud url
+        # Validate the media url
+        media_type = None
         try:
-            validate_soundcloud_url(media_url)
+            media_type = validate_media_url(media_url)
         except ValidationError as e:
             return CreateFeedbackRequest(
                 success=False,
@@ -152,7 +158,7 @@ class CreateFeedbackRequest(graphene.Mutation):
         feedback_request = FeedbackRequest(
             user=feedback_groups_user,
             media_url=media_url,
-            media_type=MediaTypeChoice.SOUNDCLOUD,
+            media_type=media_type,
             feedback_prompt=feedback_prompt,
         )
         feedback_request.save()
@@ -178,9 +184,10 @@ class EditFeedbackRequest(graphene.Mutation):
                 error='Not logged in.',
             )
 
-        # Validate the soundcloud url
+        # Validate the media url
+        media_type = None
         try:
-            validate_soundcloud_url(media_url)
+            media_type = validate_media_url(media_url)
         except ValidationError as e:
             return EditFeedbackRequest(
                 success=False,
@@ -211,6 +218,7 @@ class EditFeedbackRequest(graphene.Mutation):
         
         if media_url:
             feedback_request.media_url = media_url
+            feedback_request.media_type = media_type
         # Allow empty feedback prompt
         if feedback_prompt is not None:
             feedback_request.feedback_prompt = feedback_prompt

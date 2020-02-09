@@ -51,6 +51,8 @@ class FeedbackGroup(models.Model):
 
 class MediaTypeChoice(Enum):
     SOUNDCLOUD = 'Soundcloud'
+    GOOGLEDRIVE = 'Google Drive'
+    DROPBOX = 'Dropbox'
 
 
 class FeedbackRequest(models.Model):
