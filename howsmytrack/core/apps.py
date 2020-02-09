@@ -2,4 +2,7 @@ from django.apps import AppConfig
 
 
 class CoreConfig(AppConfig):
-    name = 'core'
+    name = 'howsmytrack.core'
+
+    def ready(self):
+        print('core app ready')
