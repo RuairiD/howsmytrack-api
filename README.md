@@ -17,3 +17,8 @@ Almost the entire API is served from a `/graphql` endpoint*; when running in deb
 
 ## Authentication
 JWTs are used for stateless authentication. The [`django-graphql-jwt`](https://github.com/flavors/django-graphql-jwt) package is used for providing tokens, which are set in a HttpOnly `JWT` cookie. Due to the relative lack of sensitive data stored (essentially email addresses and Soundcloud URLs), authentication wasn't extensively researched or implemented, and functions in pretty simple capacity.
+
+## Scheduled Jobs
+A combination of `apscheduler` and and `django_apscheduler` are used to run two scheduled jobs.
+* `calculate_user_ratings` recalculates the average ratings of all users based on their recent feedback ratings (run at 2:00AM UTC every day)
+* `assign_groups` assigns all unassigned feedback requests to new groups (run at 2:30AM UTC every day)
