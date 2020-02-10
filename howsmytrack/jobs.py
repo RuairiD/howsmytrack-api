@@ -35,13 +35,6 @@ def assign_groups():
         print('Done: assign_groups')
 
 
-@register_job(scheduler, 'interval', hours=1)
-def run_every_hour():
-    with lock:
-        print(f'Server time is: {timezone.now().strftime("%m/%d/%Y, %H:%M:%S")}')
-
-
-
 def start_scheduler():
     with lock:
         if scheduler.state == 0:
