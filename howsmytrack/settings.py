@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import sys
 from datetime import timedelta
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+RUNNING_LOCALLY = False
+DEBUG = RUNNING_LOCALLY or 'test' in sys.argv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'secret_key'
 if not DEBUG:
-    SECRET_KEY = os.environ['SECRET_KEY']
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'secret_key')
 
 
 ALLOWED_HOSTS = [
@@ -119,7 +121,7 @@ else:
     EMAIL_USE_TLS = True
     EMAIL_PORT = 25
     EMAIL_HOST_USER = 'apikey'
-    EMAIL_HOST_PASSWORD = os.environ['SENDGRID_API_KEY']
+    EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY', 'sendgrid_api_key')
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
