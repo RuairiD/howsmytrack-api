@@ -52,7 +52,7 @@ class Command(BaseCommand):
         feedback_group = FeedbackGroup(name='test replace lol')
         feedback_group.save()
 
-        feedback_group.name = f'Group #{feedback_group.id}'
+        feedback_group.name = f'Feedback Group #{feedback_group.id}'
         feedback_group.save()
 
         requests_count = 0
