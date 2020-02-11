@@ -40,9 +40,14 @@ class FeedbackGroupsUser(models.Model):
 
 class FeedbackGroup(models.Model):
     name = models.CharField(max_length=100)
+    time_created = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
-        return self.name
+        return f'{self.name} ({self.time_created})'
 
     class Meta:
         verbose_name = 'FeedbackGroup'
@@ -67,7 +72,7 @@ class FeedbackRequest(models.Model):
     media_url = models.CharField(max_length=100)
     media_type = models.CharField(
         max_length=32,
-        choices=[(tag, tag.value) for tag in MediaTypeChoice],
+        choices=[(tag.name, tag.value) for tag in MediaTypeChoice],
     )
     feedback_prompt = models.TextField(
         blank=True,
@@ -83,7 +88,7 @@ class FeedbackRequest(models.Model):
     time_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.user}\'s request for {self.media_url}'
+        return f'{self.user}\'s request for {self.media_url} ({self.time_created})'
 
     class Meta:
         verbose_name = 'FeedbackRequest'

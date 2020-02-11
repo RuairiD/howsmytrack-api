@@ -63,6 +63,9 @@ class Query(graphene.ObjectType):
             id=feedback_group_id,
         ).first()
 
+        if not feedback_group:
+            return None
+
         return FeedbackGroupType.from_model(feedback_group, feedback_groups_user)
 
 

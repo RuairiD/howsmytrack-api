@@ -1,4 +1,7 @@
+import datetime
+import pytz
 from unittest.mock import Mock
+from unittest.mock import patch
 
 from django.test import TestCase
 from graphene.test import Client
@@ -13,6 +16,9 @@ from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
 from howsmytrack.schema import schema
+
+
+DEFAULT_DATETIME = datetime.datetime(1991, 11, 21, tzinfo=pytz.utc)
 
 
 class UserDetailsTest(TestCase):
@@ -57,8 +63,9 @@ class FeedbackGroupTest(TestCase):
         self.graham_user.save()
         self.lewis_user.save()
 
-        self.feedback_group = FeedbackGroup(name='name')
-        self.feedback_group.save()
+        with patch('django.utils.timezone.now', Mock(return_value=DEFAULT_DATETIME)):
+            self.feedback_group = FeedbackGroup(name='name')
+            self.feedback_group.save()
 
         self.graham_feedback_request = FeedbackRequest(
             user=self.graham_user,
@@ -102,6 +109,16 @@ class FeedbackGroupTest(TestCase):
         )
         self.assertIs(result, None)
 
+    def test_bad_id(self):
+        info = Mock()
+        info.context = Mock()
+        info.context.user = self.graham_user.user
+        result = schema.get_query_type().graphene_type().resolve_feedback_group(
+            info=info,
+            feedback_group_id=1901,
+        )
+        self.assertIs(result, None)
+
     def test_logged_in(self):
         info = Mock()
         info.context = Mock()
@@ -115,6 +132,7 @@ class FeedbackGroupTest(TestCase):
             name='name',
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type='MediaTypeChoice.SOUNDCLOUD',
+            time_created=DEFAULT_DATETIME,
             members=2,
             feedback_responses=[
                 FeedbackResponseType(
@@ -161,8 +179,9 @@ class FeedbackGroupsTest(TestCase):
         self.graham_user.save()
         self.lewis_user.save()
 
-        self.feedback_group = FeedbackGroup(name='name')
-        self.feedback_group.save()
+        with patch('django.utils.timezone.now', Mock(return_value=DEFAULT_DATETIME)):
+            self.feedback_group = FeedbackGroup(name='name')
+            self.feedback_group.save()
 
         self.graham_feedback_request = FeedbackRequest(
             user=self.graham_user,
@@ -217,6 +236,7 @@ class FeedbackGroupsTest(TestCase):
             name='name',
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type='MediaTypeChoice.SOUNDCLOUD',
+            time_created=DEFAULT_DATETIME,
             members=2,
             feedback_responses=[
                 FeedbackResponseType(

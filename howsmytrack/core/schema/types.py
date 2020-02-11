@@ -83,6 +83,7 @@ class UserType(graphene.ObjectType):
 class FeedbackGroupType(graphene.ObjectType):
     id = graphene.Int()
     name = graphene.String()
+    time_created = graphene.types.datetime.DateTime()
     # The URL submitted by the logged in user.
     media_url = graphene.String()
     media_type = graphene.String()
@@ -129,6 +130,7 @@ class FeedbackGroupType(graphene.ObjectType):
         return cls(
             id=model.id,
             name=model.name,
+            time_created=model.time_created,
             media_url=user_feedback_request.media_url,
             media_type=user_feedback_request.media_type,
             members=model.feedback_requests.count(),
@@ -140,6 +142,7 @@ class FeedbackGroupType(graphene.ObjectType):
         return all([
             self.id == other.id,
             self.name == other.name,
+            self.time_created == other.time_created,
             self.media_url == other.media_url,
             self.media_type == other.media_type,
             self.members == other.members,
