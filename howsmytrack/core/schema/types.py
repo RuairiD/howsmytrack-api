@@ -16,14 +16,6 @@ class FeedbackRequestType(graphene.ObjectType):
             feedback_prompt=model.feedback_prompt,
         )
 
-    def __hash__(self):
-        return hash((
-            self.id,
-            self.media_url,
-            self.media_type,
-            self.feedback_prompt,
-        ))
-
     def __eq__(self, other):
         return all([
             self.id == other.id,
@@ -49,15 +41,6 @@ class FeedbackResponseType(graphene.ObjectType):
             submitted=model.submitted,
             rating=model.rating,
         )
-
-    def __hash__(self):
-        return hash((
-            self.id,
-            self.feedback_request,
-            self.feedback,
-            self.submitted,
-            self.rating,
-        ))
 
     def __eq__(self, other):
         return all([
@@ -108,16 +91,16 @@ class FeedbackGroupType(graphene.ObjectType):
             if feedback_request.user != feedback_groups_user
         ]
 
-        feedback_responses = set()
+        feedback_responses = []
         for feedback_request in feedback_requests_for_user:
             for feedback_response in feedback_request.feedback_responses.all():
                 if feedback_response.user == feedback_groups_user:
-                    feedback_responses.add(
+                    feedback_responses.append(
                         FeedbackResponseType.from_model(feedback_response)
                     )
 
         # If user has responded to all requests, find user's request and get responses
-        user_feedback_responses = None
+        user_feedback_responses = []
         if all([feedback_response.submitted for feedback_response in feedback_responses]):
             # Only returned submitted responses
             user_feedback_responses = [
@@ -134,8 +117,8 @@ class FeedbackGroupType(graphene.ObjectType):
             media_url=user_feedback_request.media_url,
             media_type=user_feedback_request.media_type,
             members=model.feedback_requests.count(),
-            feedback_responses=list(feedback_responses),
-            user_feedback_responses=list(user_feedback_responses),
+            feedback_responses=feedback_responses,
+            user_feedback_responses=user_feedback_responses,
         )
 
     def __eq__(self, other):
