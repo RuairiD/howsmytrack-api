@@ -277,7 +277,7 @@ class CreateFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://soundcloud.com/ruairidx/bruno',
-                media_type=MediaTypeChoice.SOUNDCLOUD,
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -303,7 +303,7 @@ class CreateFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://drive.google.com/file/d/roflcopter/view',
-                media_type=MediaTypeChoice.GOOGLEDRIVE,
+                media_type=MediaTypeChoice.GOOGLEDRIVE.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -329,7 +329,7 @@ class CreateFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://www.dropbox.com/s/nonsense/file.wav',
-                media_type=MediaTypeChoice.DROPBOX,
+                media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -340,7 +340,7 @@ class CreateFeedbackRequestTest(TestCase):
         FeedbackRequest(
             user=self.user,
             media_url='https://soundcloud.com/ruairidx/bruno',
-            media_type=MediaTypeChoice.SOUNDCLOUD,
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=None,
         ).save()
@@ -375,7 +375,7 @@ class CreateFeedbackRequestTest(TestCase):
         FeedbackRequest(
             user=self.user,
             media_url='https://soundcloud.com/ruairidx/bruno',
-            media_type=MediaTypeChoice.SOUNDCLOUD,
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=feedback_group,
         ).save()
@@ -399,7 +399,7 @@ class CreateFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://www.dropbox.com/s/nonsense/file.wav',
-                media_type=MediaTypeChoice.DROPBOX,
+                media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -415,7 +415,7 @@ class CreateFeedbackRequestTest(TestCase):
         FeedbackRequest(
             user=self.another_user,
             media_url='https://soundcloud.com/ruairidx/bruno',
-            media_type=MediaTypeChoice.SOUNDCLOUD,
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
         ).save()
 
@@ -454,7 +454,7 @@ class EditFeedbackRequestTest(TestCase):
         self.existing_request = FeedbackRequest(
             user=self.user,
             media_url='https://soundcloud.com/ruairidx/grey',
-            media_type=MediaTypeChoice.SOUNDCLOUD,
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
         )
         self.existing_request.save()
@@ -503,7 +503,7 @@ class EditFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://soundcloud.com/ruairidx/grey',
-                media_type=MediaTypeChoice.SOUNDCLOUD,
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -530,7 +530,7 @@ class EditFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://soundcloud.com/ruairidx/grey',
-                media_type=MediaTypeChoice.SOUNDCLOUD,
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -557,7 +557,7 @@ class EditFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://www.dropbox.com/s/nonsense/file.wav',
-                media_type=MediaTypeChoice.DROPBOX,
+                media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -589,7 +589,7 @@ class EditFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://soundcloud.com/ruairidx/grey',
-                media_type=MediaTypeChoice.SOUNDCLOUD,
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -621,7 +621,7 @@ class EditFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://soundcloud.com/ruairidx/grey',
-                media_type=MediaTypeChoice.SOUNDCLOUD,
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
             ).count(),
             1,
@@ -644,7 +644,7 @@ class SubmitFeedbackResponseTest(TestCase):
         self.feedback_request = FeedbackRequest(
             user=self.request_user,
             media_url='https://soundcloud.com/ruairidx/grey',
-            media_type=MediaTypeChoice.SOUNDCLOUD,
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
         )
         self.feedback_request.save()
@@ -777,7 +777,7 @@ class RateFeedbackResponseTest(TestCase):
         self.feedback_request = FeedbackRequest(
             user=self.request_user,
             media_url='https://soundcloud.com/ruairidx/grey',
-            media_type=MediaTypeChoice.SOUNDCLOUD,
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
         )
         self.feedback_request.save()

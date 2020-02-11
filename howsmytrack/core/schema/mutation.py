@@ -98,11 +98,11 @@ def validate_media_url(media_url):
             message=INVALID_MEDIA_URL_MESSAGE,
         )
     if 'https://soundcloud.com/' in media_url:
-        return MediaTypeChoice.SOUNDCLOUD
+        return MediaTypeChoice.SOUNDCLOUD.name
     if 'dropbox.com/' in media_url:
-        return MediaTypeChoice.DROPBOX
+        return MediaTypeChoice.DROPBOX.name
     if 'drive.google.com/file' in media_url:
-        return MediaTypeChoice.GOOGLEDRIVE
+        return MediaTypeChoice.GOOGLEDRIVE.name
     raise ValidationError(
         message=INVALID_MEDIA_URL_MESSAGE,
     )
