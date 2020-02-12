@@ -73,6 +73,7 @@ class FeedbackGroupTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
+            email_when_grouped=True,
         )
         self.lewis_feedback_request = FeedbackRequest(
             user=self.lewis_user,
@@ -80,6 +81,7 @@ class FeedbackGroupTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
+            email_when_grouped=True,
         )
         self.graham_feedback_request.save()
         self.lewis_feedback_request.save()
@@ -142,6 +144,7 @@ class FeedbackGroupTest(TestCase):
                         media_url='https://soundcloud.com/ruairidx/bruno',
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
                     ),
                     feedback='grahamfeedback',
                     submitted=True,
@@ -156,6 +159,7 @@ class FeedbackGroupTest(TestCase):
                         media_url='https://soundcloud.com/ruairidx/grey',
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
                     ),
                     feedback='lewisfeedback',
                     submitted=True,
@@ -191,6 +195,7 @@ class FeedbackGroupTest(TestCase):
                         media_url='https://soundcloud.com/ruairidx/bruno',
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
                     ),
                     feedback='grahamfeedback',
                     submitted=False,
@@ -225,6 +230,7 @@ class FeedbackGroupsTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
+            email_when_grouped=True,
         )
         self.lewis_feedback_request = FeedbackRequest(
             user=self.lewis_user,
@@ -232,6 +238,7 @@ class FeedbackGroupsTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
+            email_when_grouped=True,
         )
         self.graham_feedback_request.save()
         self.lewis_feedback_request.save()
@@ -282,6 +289,7 @@ class FeedbackGroupsTest(TestCase):
                         media_url='https://soundcloud.com/ruairidx/bruno',
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
                     ),
                     feedback='grahamfeedback',
                     submitted=True,
@@ -296,6 +304,7 @@ class FeedbackGroupsTest(TestCase):
                         media_url='https://soundcloud.com/ruairidx/grey',
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
                     ),
                     feedback='lewisfeedback',
                     submitted=True,
@@ -330,6 +339,7 @@ class UnassignedRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
+            email_when_grouped=True,
         )
         self.lewis_feedback_request = FeedbackRequest(
             user=self.lewis_user,
@@ -337,6 +347,7 @@ class UnassignedRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=None,
+            email_when_grouped=True,
         )
         self.graham_feedback_request.save()
         self.lewis_feedback_request.save()
@@ -370,5 +381,6 @@ class UnassignedRequestTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/bruno',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
         self.assertEqual(result, expected)

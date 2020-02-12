@@ -111,6 +111,7 @@ class CreateFeedbackRequest(graphene.Mutation):
 
     class Arguments:
         media_url = graphene.String(required=True)
+        email_when_grouped = graphene.Boolean(required=True)
         feedback_prompt = graphene.String(required=False)
 
     success = graphene.Boolean()
@@ -122,7 +123,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             self.error == other.error,
         ])
 
-    def mutate(self, info, media_url, feedback_prompt=None):
+    def mutate(self, info, media_url, email_when_grouped, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
             return CreateFeedbackRequest(
@@ -174,6 +175,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             media_url=media_url,
             media_type=media_type,
             feedback_prompt=feedback_prompt,
+            email_when_grouped=email_when_grouped,
         )
         feedback_request.save()
 
@@ -184,6 +186,7 @@ class EditFeedbackRequest(graphene.Mutation):
 
     class Arguments:
         feedback_request_id = graphene.Int(required=True)
+        email_when_grouped = graphene.Boolean(required=False)
         media_url = graphene.String(required=False)
         feedback_prompt = graphene.String(required=False)
 
@@ -196,7 +199,7 @@ class EditFeedbackRequest(graphene.Mutation):
             self.error == other.error,
         ])
 
-    def mutate(self, info, feedback_request_id, media_url, feedback_prompt=None):
+    def mutate(self, info, feedback_request_id, email_when_grouped=None, media_url=None, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
             return EditFeedbackRequest(
@@ -242,6 +245,8 @@ class EditFeedbackRequest(graphene.Mutation):
         # Allow empty feedback prompt
         if feedback_prompt is not None:
             feedback_request.feedback_prompt = feedback_prompt
+        if email_when_grouped is not None:
+            feedback_request.email_when_grouped = email_when_grouped
         feedback_request.save()
 
         return EditFeedbackRequest(success=True, error=None)

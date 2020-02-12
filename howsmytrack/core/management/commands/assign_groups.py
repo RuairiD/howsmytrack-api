@@ -1,5 +1,8 @@
+from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
+from django.template.loader import render_to_string
+
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
@@ -13,6 +16,8 @@ REQUESTS_TO_GROUP_SIZES = dict([
     (5, 3),
     (7, 4),
 ])
+
+WEBSITE_URL = 'https://howsmytrack.com{path}'
 
 class Command(BaseCommand):
     """
@@ -48,6 +53,31 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         pass
 
+    def send_email_to_group_member(self, email, feedback_group_url, feedback_request_media_url):
+        message = render_to_string('new_group_email.txt', {
+            'email': email,
+            'feedback_group_url': feedback_group_url,
+            'feedback_request_media_url': feedback_request_media_url,
+        })
+
+        send_mail(
+            subject="how's my track? - your new feedback group",
+            message=message,
+            from_email=None, # Use default in settings.py
+            recipient_list=[email],
+        )
+
+    def send_emails_for_group(self, feedback_group):
+        for feedback_request in feedback_group.feedback_requests.all():
+            if feedback_request.email_when_grouped:
+                self.send_email_to_group_member(
+                    email=feedback_request.user.email,
+                    feedback_group_url=WEBSITE_URL.format(
+                        path=f'/group/{feedback_group.id}'
+                    ),
+                    feedback_request_media_url=feedback_request.media_url,
+                )
+
     def create_feedback_group(self, feedback_requests):
         feedback_group = FeedbackGroup(name='test replace lol')
         feedback_group.save()
@@ -71,6 +101,9 @@ class Command(BaseCommand):
                     )
                     feedback_response.save()
                     responses_count += 1
+
+        # Send every member of the group an email with a link to the newly created group
+        self.send_emails_for_group(feedback_group)
         
         self.stdout.write(
             f'Created {feedback_group.name} with {requests_count} requests and {responses_count} responses.',

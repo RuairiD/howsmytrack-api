@@ -197,6 +197,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -220,6 +221,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='not a real url',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -243,6 +245,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://twitter.com/ruairidx',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -266,6 +269,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -279,6 +283,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_url='https://soundcloud.com/ruairidx/bruno',
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
             ).count(),
             1,
         )
@@ -292,6 +297,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://drive.google.com/file/d/roflcopter/view',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -305,6 +311,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_url='https://drive.google.com/file/d/roflcopter/view',
                 media_type=MediaTypeChoice.GOOGLEDRIVE.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
             ).count(),
             1,
         )
@@ -318,6 +325,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -331,6 +339,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_url='https://www.dropbox.com/s/nonsense/file.wav',
                 media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
             ).count(),
             1,
         )
@@ -343,6 +352,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=None,
+            email_when_grouped=True,
         ).save()
 
         info = Mock()
@@ -353,6 +363,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -378,6 +389,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             feedback_group=feedback_group,
+            email_when_grouped=True,
         ).save()
 
         info = Mock()
@@ -388,6 +400,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -401,6 +414,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_url='https://www.dropbox.com/s/nonsense/file.wav',
                 media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
             ).count(),
             1,
         )
@@ -417,6 +431,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/bruno',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         ).save()
 
         info = Mock()
@@ -427,6 +442,7 @@ class CreateFeedbackRequestTest(TestCase):
             info=info,
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -456,6 +472,7 @@ class EditFeedbackRequestTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
         )
         self.existing_request.save()
 
@@ -467,6 +484,7 @@ class EditFeedbackRequestTest(TestCase):
             feedback_request_id=self.existing_request.id,
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=False,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -492,6 +510,7 @@ class EditFeedbackRequestTest(TestCase):
             feedback_request_id=self.existing_request.id,
             media_url='not a real url',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=False,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -519,6 +538,7 @@ class EditFeedbackRequestTest(TestCase):
             feedback_request_id=self.existing_request.id,
             media_url='https://twitter.com/ruairidx',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=False,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -532,6 +552,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_url='https://soundcloud.com/ruairidx/grey',
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
             ).count(),
             1,
         )
@@ -546,6 +567,7 @@ class EditFeedbackRequestTest(TestCase):
             feedback_request_id=self.existing_request.id,
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=False,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -559,6 +581,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_url='https://www.dropbox.com/s/nonsense/file.wav',
                 media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=False,
             ).count(),
             1,
         )
@@ -578,6 +601,7 @@ class EditFeedbackRequestTest(TestCase):
             feedback_request_id=self.existing_request.id,
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=False,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -591,6 +615,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_url='https://soundcloud.com/ruairidx/grey',
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
             ).count(),
             1,
         )
@@ -610,6 +635,7 @@ class EditFeedbackRequestTest(TestCase):
             feedback_request_id=self.existing_request.id,
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
+            email_when_grouped=False,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -623,6 +649,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_url='https://soundcloud.com/ruairidx/grey',
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
             ).count(),
             1,
         )
