@@ -11,8 +11,8 @@ from django.utils import timezone
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
 
-# 2 AM UTC; Americans get groups in the evenings, Europeans can have them in the morning.
-JOB_HOUR = 2
+# 10 AM UTC; focusing on Americans who get their groups assigned while they sleep.
+JOB_HOUR = 10
 
 # Lock is used to prevent the same job running multiple times simultaneously. In the long term,
 # I would prefer to figure out why this is happening, even with just one instance running.
