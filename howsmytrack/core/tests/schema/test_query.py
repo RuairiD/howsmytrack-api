@@ -134,6 +134,13 @@ class FeedbackGroupTest(TestCase):
             name='name',
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
+            feedback_request=FeedbackRequestType(
+                id=1,
+                media_url='https://soundcloud.com/ruairidx/grey',
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
+            ),
             time_created=DEFAULT_DATETIME,
             members=2,
             feedback_responses=[
@@ -185,6 +192,13 @@ class FeedbackGroupTest(TestCase):
             name='name',
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
+            feedback_request=FeedbackRequestType(
+                id=1,
+                media_url='https://soundcloud.com/ruairidx/grey',
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
+            ),
             time_created=DEFAULT_DATETIME,
             members=2,
             feedback_responses=[
@@ -279,6 +293,13 @@ class FeedbackGroupsTest(TestCase):
             name='name',
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
+            feedback_request=FeedbackRequestType(
+                id=1,
+                media_url='https://soundcloud.com/ruairidx/grey',
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
+            ),
             time_created=DEFAULT_DATETIME,
             members=2,
             feedback_responses=[

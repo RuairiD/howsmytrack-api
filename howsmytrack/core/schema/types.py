@@ -71,8 +71,10 @@ class FeedbackGroupType(graphene.ObjectType):
     name = graphene.String()
     time_created = graphene.types.datetime.DateTime()
     # The URL submitted by the logged in user.
-    media_url = graphene.String()
-    media_type = graphene.String()
+    media_url = graphene.String() # TODO deprecate
+    media_type = graphene.String() # TODO deprecate
+    # The logged in user's request in this group
+    feedback_request = graphene.Field(FeedbackRequestType)
     # The number of users in the group.
     members = graphene.Int()
     # User's feedback responses for other group member's requests 
@@ -119,6 +121,7 @@ class FeedbackGroupType(graphene.ObjectType):
             time_created=model.time_created,
             media_url=user_feedback_request.media_url,
             media_type=user_feedback_request.media_type,
+            feedback_request=FeedbackRequestType.from_model(user_feedback_request),
             members=model.feedback_requests.count(),
             feedback_responses=feedback_responses,
             user_feedback_responses=user_feedback_responses,
