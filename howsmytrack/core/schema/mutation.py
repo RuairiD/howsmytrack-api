@@ -19,10 +19,27 @@ from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import MediaTypeChoice
 
 
-INVALID_MEDIA_URL_MESSAGE = 'Please provide any of the following: a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks), a shareable Google Drive URL of the form `https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz1234567/view` or a Dropbox URL of the form `https://www.dropbox.com/s/abcdefghijklmno/filename`'
+# TODO specific error messages for each supported platform, including instructions on how to obtain the correct links.
+# Part of this can be achieved by passing back an `invalid_media_url` field which, when true, causes the client to show
+# formatted instructions and perhaps an informational modal.
+INVALID_MEDIA_URL_MESSAGE = 'Please provide any of the following: a valid Soundcloud URL of the form `https://soundcloud.com/artist/track` (or `https://soundcloud.com/artist/track/secret` for private tracks), a shareable Google Drive URL of the form `https://drive.google.com/file/d/abcdefghijklmnopqrstuvwxyz1234567/view`, a Dropbox URL of the form `https://www.dropbox.com/s/abcdefghijklmno/filename` or a OneDrive URL of the form `https://onedrive.live.com/?authkey=AUTHKEY&cid=CID&id=ID`'
 
 
 INVALID_PASSWORD_MESSAGE = 'Please choose a more secure password. Your password must contain at least 8 characters, can’t be a commonly used password (e.g. "password") and can’t be entirely numeric.'
+
+
+ONEDRIVE_DOWNLOAD_PARTS = [
+    'https://onedrive.live.com/download',
+    'authkey=',
+    'cid=',
+    'resid=',
+]
+ONEDRIVE_FILE_PARTS = [
+    'https://onedrive.live.com/',
+    'authkey=',
+    'cid=',
+    'id=',
+]
 
 
 class RefreshTokenFromCookie(graphql_jwt.Refresh):
@@ -89,6 +106,21 @@ class RegisterUser(graphene.Mutation):
         return RegisterUser(success=False, error="Passwords don't match.")
 
 
+def is_onedrive_url(media_url):
+    # Directly downloadable URLs are used for OneDrive links.
+    # If the user provides this directly, great. Otherwise, we can
+    # still assemble the link from the regular file URL.
+    # We cannot do anything with a OneDrive shortlink from the
+    # Share menu and should reject it.
+    return all([
+        url_part in media_url
+        for url_part in ONEDRIVE_DOWNLOAD_PARTS
+    ]) or all([
+        url_part in media_url
+        for url_part in ONEDRIVE_FILE_PARTS
+    ])
+
+
 def validate_media_url(media_url):
     url_validator = URLValidator()
     try:
@@ -101,8 +133,10 @@ def validate_media_url(media_url):
         return MediaTypeChoice.SOUNDCLOUD.name
     if 'dropbox.com/' in media_url:
         return MediaTypeChoice.DROPBOX.name
-    if 'drive.google.com/file' in media_url:
+    if 'drive.google.com/file' in media_url:    
         return MediaTypeChoice.GOOGLEDRIVE.name
+    if is_onedrive_url(media_url):
+        return MediaTypeChoice.ONEDRIVE.name
     raise ValidationError(
         message=INVALID_MEDIA_URL_MESSAGE,
     )
@@ -116,6 +150,7 @@ class CreateFeedbackRequest(graphene.Mutation):
 
     success = graphene.Boolean()
     error = graphene.String()
+    invalid_media_url = graphene.Boolean()
 
     def __eq__(self, other):
         return all([
@@ -129,6 +164,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             return CreateFeedbackRequest(
                 success=False,
                 error='Not logged in.',
+                invalid_media_url=False,
             )
 
         # Validate the media url
@@ -139,6 +175,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             return CreateFeedbackRequest(
                 success=False,
                 error=e.message,
+                invalid_media_url=True,
             )
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
@@ -156,6 +193,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             return CreateFeedbackRequest(
                 success=False,
                 error='You have an unassigned feedback request. Once that request has been assigned to a feedback group, you will be eligible to submit another request.',
+                invalid_media_url=False,
             )
 
         # Reject requests for the same URL (if the other submission hasn't been grouped yet)
@@ -168,6 +206,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             return CreateFeedbackRequest(
                 success=False,
                 error='A request for this track is already pending.',
+                invalid_media_url=False,
             )
         
         feedback_request = FeedbackRequest(
@@ -179,7 +218,11 @@ class CreateFeedbackRequest(graphene.Mutation):
         )
         feedback_request.save()
 
-        return CreateFeedbackRequest(success=True, error=None)
+        return CreateFeedbackRequest(
+            success=True,
+            error=None,
+            invalid_media_url=False,
+        )
 
 
 class EditFeedbackRequest(graphene.Mutation):
@@ -192,6 +235,7 @@ class EditFeedbackRequest(graphene.Mutation):
 
     success = graphene.Boolean()
     error = graphene.String()
+    invalid_media_url = graphene.Boolean()
 
     def __eq__(self, other):
         return all([
@@ -205,6 +249,7 @@ class EditFeedbackRequest(graphene.Mutation):
             return EditFeedbackRequest(
                 success=False,
                 error='Not logged in.',
+                invalid_media_url=False,
             )
 
         # Validate the media url
@@ -215,6 +260,7 @@ class EditFeedbackRequest(graphene.Mutation):
             return EditFeedbackRequest(
                 success=False,
                 error=e.message,
+                invalid_media_url=True,
             )
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
@@ -230,6 +276,7 @@ class EditFeedbackRequest(graphene.Mutation):
             return EditFeedbackRequest(
                 success=False,
                 error='You are not the owner of this feedback request.',
+                invalid_media_url=False,
             )
 
         # Reject the edit if the request has already been assigned to a group.
@@ -237,6 +284,7 @@ class EditFeedbackRequest(graphene.Mutation):
             return EditFeedbackRequest(
                 success=False,
                 error='This request has already been assigned to a feedback group and cannot be edited.',
+                invalid_media_url=False,
             )
         
         if media_url:
@@ -249,7 +297,11 @@ class EditFeedbackRequest(graphene.Mutation):
             feedback_request.email_when_grouped = email_when_grouped
         feedback_request.save()
 
-        return EditFeedbackRequest(success=True, error=None)
+        return EditFeedbackRequest(
+            success=True,
+            error=None,
+            invalid_media_url=False,
+        )
 
 
 class SubmitFeedbackResponse(graphene.Mutation):

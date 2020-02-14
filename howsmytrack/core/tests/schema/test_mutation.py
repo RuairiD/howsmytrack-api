@@ -203,6 +203,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=False,
             error='Not logged in.',
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -227,6 +228,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=False,
             error=INVALID_MEDIA_URL_MESSAGE,
+            invalid_media_url=True,
         ))
 
         self.assertEqual(
@@ -251,6 +253,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=False,
             error=INVALID_MEDIA_URL_MESSAGE,
+            invalid_media_url=True,
         ))
 
         self.assertEqual(
@@ -275,6 +278,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=True,
             error=None,
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -303,6 +307,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=True,
             error=None,
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -331,6 +336,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=True,
             error=None,
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -338,6 +344,35 @@ class CreateFeedbackRequestTest(TestCase):
                 user=self.user,
                 media_url='https://www.dropbox.com/s/nonsense/file.wav',
                 media_type=MediaTypeChoice.DROPBOX.name,
+                feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
+            ).count(),
+            1,
+        )
+
+    def test_onedrive(self):
+        info = Mock()
+        info.context = Mock()
+        info.context.user = self.user.user
+        result = schema.get_mutation_type().fields['createFeedbackRequest'].resolver(
+            self=Mock(),
+            info=info,
+            media_url='https://onedrive.live.com/?authkey=AUTHKEY&cid=CID&id=ID',
+            feedback_prompt='feedback_prompt',
+            email_when_grouped=True,
+        )
+
+        self.assertEqual(result, CreateFeedbackRequest(
+            success=True,
+            error=None,
+            invalid_media_url=False,
+        ))
+
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=self.user,
+                media_url='https://onedrive.live.com/?authkey=AUTHKEY&cid=CID&id=ID',
+                media_type=MediaTypeChoice.ONEDRIVE.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
             ).count(),
@@ -369,6 +404,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=False,
             error='You have an unassigned feedback request. Once that request has been assigned to a feedback group, you will be eligible to submit another request.',
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -406,6 +442,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=True,
             error=None,
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -448,6 +485,7 @@ class CreateFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=False,
             error='A request for this track is already pending.',
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -490,6 +528,7 @@ class EditFeedbackRequestTest(TestCase):
         self.assertEqual(result, EditFeedbackRequest(
             success=False,
             error='Not logged in.',
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -516,6 +555,7 @@ class EditFeedbackRequestTest(TestCase):
         self.assertEqual(result, EditFeedbackRequest(
             success=False,
             error=INVALID_MEDIA_URL_MESSAGE,
+            invalid_media_url=True,
         ))
 
         self.assertEqual(
@@ -544,6 +584,7 @@ class EditFeedbackRequestTest(TestCase):
         self.assertEqual(result, EditFeedbackRequest(
             success=False,
             error=INVALID_MEDIA_URL_MESSAGE,
+            invalid_media_url=True,
         ))
 
         self.assertEqual(
@@ -573,6 +614,7 @@ class EditFeedbackRequestTest(TestCase):
         self.assertEqual(result, CreateFeedbackRequest(
             success=True,
             error=None,
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -607,6 +649,7 @@ class EditFeedbackRequestTest(TestCase):
         self.assertEqual(result, EditFeedbackRequest(
             success=False,
             error='This request has already been assigned to a feedback group and cannot be edited.',
+            invalid_media_url=False,
         ))
 
         self.assertEqual(
@@ -641,6 +684,7 @@ class EditFeedbackRequestTest(TestCase):
         self.assertEqual(result, EditFeedbackRequest(
             success=False,
             error='You are not the owner of this feedback request.',
+            invalid_media_url=False,
         ))
 
         self.assertEqual(

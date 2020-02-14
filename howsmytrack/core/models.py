@@ -58,6 +58,7 @@ class MediaTypeChoice(Enum):
     SOUNDCLOUD = 'Soundcloud'
     GOOGLEDRIVE = 'Google Drive'
     DROPBOX = 'Dropbox'
+    ONEDRIVE = 'OneDrive'
 
 
 class FeedbackRequest(models.Model):
