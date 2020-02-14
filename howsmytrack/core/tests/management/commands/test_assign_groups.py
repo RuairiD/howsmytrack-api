@@ -93,7 +93,7 @@ class AssignGroupsTest(TestCase):
             self.assertEqual(email.subject, "how's my track? - your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i].email)
-            self.assertTrue('https://howsmytrack.com/group/1' in email.body)
+            self.assertTrue('https://www.howsmytrack.com/group/1' in email.body)
 
 
     def test_no_email_if_email_when_grouped_false(self):
@@ -173,7 +173,7 @@ class AssignGroupsTest(TestCase):
             self.assertEqual(email.subject, "how's my track? - your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i + 1].email)
-            self.assertTrue('https://howsmytrack.com/group/2' in email.body)
+            self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)
 
     def test_assign_groups_uneven_groups(self):
         # Use an abnormal number of feedback requests to force uneven groups.
@@ -234,14 +234,14 @@ class AssignGroupsTest(TestCase):
             # Need to do some funny indexing because emails are sent in reverse order
             # i.e. lowest rated member of group has email sent first
             self.assertEqual(email.recipients()[0], users[3 - i].email)
-            self.assertTrue('https://howsmytrack.com/group/1' in email.body)
+            self.assertTrue('https://www.howsmytrack.com/group/1' in email.body)
 
         for i in range(4, 7):
             email = mail.outbox[i]
             self.assertEqual(email.subject, "how's my track? - your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[4 + 6 - i].email)
-            self.assertTrue('https://howsmytrack.com/group/2' in email.body)
+            self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)
 
     def test_assign_groups_uneven_groups_advanced(self):
         # Groups should be a minimum of 3 members

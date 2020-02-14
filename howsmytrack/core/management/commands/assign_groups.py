@@ -17,7 +17,7 @@ REQUESTS_TO_GROUP_SIZES = dict([
     (7, 4),
 ])
 
-WEBSITE_URL = 'https://howsmytrack.com{path}'
+WEBSITE_URL = 'https://www.howsmytrack.com{path}'
 
 class Command(BaseCommand):
     """
