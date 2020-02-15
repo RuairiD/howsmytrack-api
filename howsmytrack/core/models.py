@@ -39,7 +39,7 @@ class FeedbackGroupsUser(models.Model):
 
 
 class FeedbackGroup(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     time_created = models.DateTimeField(
         auto_now_add=True,
         blank=True,
