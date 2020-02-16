@@ -70,7 +70,7 @@ class FeedbackRequest(models.Model):
         related_name='feedback_requests',
         on_delete=models.CASCADE
     )
-    media_url = models.CharField(max_length=100)
+    media_url = models.CharField(max_length=255)
     media_type = models.CharField(
         max_length=32,
         choices=[(tag.name, tag.value) for tag in MediaTypeChoice],
