@@ -88,6 +88,7 @@ class FeedbackRequest(models.Model):
     )
     time_created = models.DateTimeField(auto_now_add=True)
     email_when_grouped = models.BooleanField(default=False)
+    reminder_email_sent = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.user}\'s request for {self.media_url} ({self.time_created})'

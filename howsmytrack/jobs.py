@@ -27,6 +27,14 @@ def calculate_user_ratings():
         print('Done: calculate_user_ratings')
 
 
+@register_job(scheduler, 'cron', hour=JOB_HOUR, minute=15)
+def send_group_reminder_emails():
+    with lock:
+        print('Starting: send_group_reminder_emails')
+        call_command('send_group_reminder_emails')
+        print('Done: send_group_reminder_emails')
+
+
 @register_job(scheduler, 'cron', hour=JOB_HOUR, minute=30)
 def assign_groups():
     with lock:
