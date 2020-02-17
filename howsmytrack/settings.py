@@ -32,6 +32,7 @@ if not DEBUG:
 
 ALLOWED_HOSTS = [
     'howsmytrack-api.herokuapp.com'
+    'api.howsmytrack.com'
 ]
 if DEBUG:
     ALLOWED_HOSTS = ['*']
@@ -99,6 +100,7 @@ if DEBUG:
     CORS_ORIGIN_ALLOW_ALL = True
 else:
     CORS_ORIGIN_WHITELIST = [
+        'https://howsmytrack.com',
         'https://www.howsmytrack.com',
         'https://howsmytrack-web.herokuapp.com',
     ]
