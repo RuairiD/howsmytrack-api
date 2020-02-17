@@ -23,4 +23,8 @@ JWTs are used for stateless authentication. The [`django-graphql-jwt`](https://g
 ## Scheduled Jobs
 A combination of `apscheduler` and `django_apscheduler` are used to run two scheduled jobs.
 * `calculate_user_ratings` recalculates the average ratings of all users based on their recent feedback ratings (run at 2:00AM UTC every day)
+* `send_group_reminder_emails` sends emails to all users with unsubmitted feedback responses for groups more than 20 hours old (run at 2:15AM UTC every day)
 * `assign_groups` assigns all unassigned feedback requests to new groups (run at 2:30AM UTC every day)
+
+## SMTP/Email
+A Sendgrid SMTP is used in production to send emails. For development, emails are 'sent' to a local directory using `filebased.EmailBackend`.
