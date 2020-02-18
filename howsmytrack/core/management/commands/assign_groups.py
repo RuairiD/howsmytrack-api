@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
 from django.template.loader import render_to_string
 
+from howsmytrack.core.models import GenreChoice
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
@@ -47,6 +48,9 @@ class Command(BaseCommand):
     20    4 4 4 4 4
     21    4 4 4 3 3 3
     etc.
+
+    Requests are separated by genre before grouping, so requests of the same genre
+    will be grouped together.
     """
     help = 'Creates FeedbackGroups for all unassigned feedback requests'
 
@@ -109,37 +113,47 @@ class Command(BaseCommand):
             f'Created {feedback_group.name} with {requests_count} requests and {responses_count} responses.',
         )
 
-    def handle(self, *args, **options):
-        unassigned_feedback_requests = FeedbackRequest.objects.filter(
-            feedback_group=None,
-        ).order_by(
-            '-user__rating',
-        ).all()
-
-        if len(unassigned_feedback_requests) == 1:
-            # Not enough requests to make a group. Try again another time :(
-            return
-
+    def assign_groups_for_requests(self, requests):
         # Determine the number of requests that can be added
         # groups of FEEDBACK_GROUP_SIZE. We're actively trying
         # to avoid groups of size 2 or fewer unless it's literally
         # impossible.
         i = 0
-        while i < len(unassigned_feedback_requests):
-            requests_left = len(unassigned_feedback_requests) - i
+        while i < len(requests):
+            requests_left = len(requests) - i
             if requests_left > 9 or requests_left % FEEDBACK_GROUP_SIZE == 0:
                 self.create_feedback_group(
-                    unassigned_feedback_requests[i:i + FEEDBACK_GROUP_SIZE]
+                    requests[i:i + FEEDBACK_GROUP_SIZE]
                 )
                 i = i + FEEDBACK_GROUP_SIZE
             elif requests_left % 3 == 0:
                 self.create_feedback_group(
-                    unassigned_feedback_requests[i:i + 3]
+                    requests[i:i + 3]
                 )
                 i = i + 3
             else:
                 next_group_size = REQUESTS_TO_GROUP_SIZES[requests_left]
                 self.create_feedback_group(
-                    unassigned_feedback_requests[i:i + next_group_size]
+                    requests[i:i + next_group_size]
                 )
                 i = i + next_group_size
+
+    def handle(self, *args, **options):
+        unassigned_feedback_requests = FeedbackRequest.objects.filter(
+            feedback_group=None,
+        ).order_by(
+            '-user__rating',
+        )
+
+        if unassigned_feedback_requests.count() == 1:
+            # Not enough requests to make a group. Try again another time :(
+            return
+
+        for genre in GenreChoice:
+            requests_for_genre = unassigned_feedback_requests.filter(
+                genre=genre.name,
+            )
+
+            if len(requests_for_genre) > 1:
+                self.assign_groups_for_requests(requests_for_genre)
+        

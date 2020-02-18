@@ -61,6 +61,12 @@ class MediaTypeChoice(Enum):
     ONEDRIVE = 'OneDrive'
 
 
+class GenreChoice(Enum):
+    ELECTRONIC = 'Electronic'
+    HIPHOP = 'Hip-Hop/Rap'
+    NO_GENRE = 'No Genre'
+
+
 class FeedbackRequest(models.Model):
     """
     A request for feedback submitted by a user.
@@ -78,6 +84,11 @@ class FeedbackRequest(models.Model):
     feedback_prompt = models.TextField(
         blank=True,
         null=True,
+    )
+    genre = models.CharField(
+        max_length=32,
+        choices=[(tag.name, tag.value) for tag in GenreChoice],
+        default=GenreChoice.NO_GENRE.name,
     )
     feedback_group = models.ForeignKey(
         FeedbackGroup,

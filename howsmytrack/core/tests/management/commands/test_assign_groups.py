@@ -2,6 +2,7 @@ from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
 
+from howsmytrack.core.models import GenreChoice
 from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
@@ -306,3 +307,59 @@ class AssignGroupsTest(TestCase):
                 ).count(),
                 1
             )
+
+    def test_genres(self):
+        genres = [
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.NO_GENRE.name,
+            GenreChoice.NO_GENRE.name,
+        ]
+        users = self.users[:6]
+        for i in range(0, 6):
+            FeedbackRequest(
+                user=users[i],
+                media_url='https://soundcloud.com/ruairidx/grey',
+                email_when_grouped=True,
+                genre=genres[i],
+            ).save()
+
+        call_command('assign_groups')
+
+        self.assertEqual(FeedbackGroup.objects.count(), 3)
+
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[0],
+                genre=GenreChoice.ELECTRONIC.name,
+            ).first().feedback_group,
+            FeedbackRequest.objects.filter(
+                user=users[1],
+                genre=GenreChoice.ELECTRONIC.name,
+            ).first().feedback_group,
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[2],
+                genre=GenreChoice.HIPHOP.name,
+            ).first().feedback_group,
+            FeedbackRequest.objects.filter(
+                user=users[3],
+                genre=GenreChoice.HIPHOP.name,
+            ).first().feedback_group,
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[4],
+                genre=GenreChoice.NO_GENRE.name,
+            ).first().feedback_group,
+            FeedbackRequest.objects.filter(
+                user=users[5],
+                genre=GenreChoice.NO_GENRE.name,
+            ).first().feedback_group,
+        )
+
+
+
