@@ -18,9 +18,16 @@ from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
+from howsmytrack.core.schema.types import MediaInfoType
+from howsmytrack.core.schema.mutation import validate_media_url
 
 
 class Query(graphene.ObjectType):
+    media_info = graphene.Field(
+        MediaInfoType,
+        media_url=graphene.String(required=True),
+    )
+
     user_details = graphene.Field(UserType)
 
     feedback_group = graphene.Field(
@@ -48,6 +55,21 @@ class Query(graphene.ObjectType):
         return UserType(
             username=user.username,
             rating=rating,
+        )
+
+    def resolve_media_info(self, info, media_url):
+        media_type = None
+        try:
+            media_type = validate_media_url(media_url)
+        except ValidationError as e:
+            return MediaInfoType(
+                media_url=media_url,
+                media_type=media_type,
+            )
+
+        return MediaInfoType(
+            media_url=media_url,
+            media_type=media_type,
         )
 
     def resolve_feedback_group(self, info, feedback_group_id):

@@ -66,6 +66,17 @@ class UserType(graphene.ObjectType):
         ])
 
 
+class MediaInfoType(graphene.ObjectType):
+    media_url = graphene.String()
+    media_type = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.media_url == other.media_url,
+            self.media_type == other.media_type,
+        ])
+
+
 class FeedbackGroupType(graphene.ObjectType):
     id = graphene.Int()
     name = graphene.String()

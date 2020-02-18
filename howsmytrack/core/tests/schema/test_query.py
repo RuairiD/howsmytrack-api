@@ -15,6 +15,7 @@ from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
+from howsmytrack.core.schema.types import MediaInfoType
 from howsmytrack.schema import schema
 
 
@@ -47,6 +48,30 @@ class UserDetailsTest(TestCase):
         self.assertEqual(result, UserType(
             username='graham@brightonandhovealbion.com',
             rating=4.5,
+        ))
+
+
+class MediaInfoTest(TestCase):
+    def test_invalid_url(self):
+        info = Mock()
+        result = schema.get_query_type().graphene_type().resolve_media_info(
+            info=info,
+            media_url='https://twitter.com',
+        )
+        self.assertEqual(result, MediaInfoType(
+            media_url='https://twitter.com',
+            media_type=None,
+        ))
+
+    def test_valid_url(self):
+        info = Mock()
+        result = schema.get_query_type().graphene_type().resolve_media_info(
+            info=info,
+            media_url='https://soundcloud.com/ruairidx/bruno',
+        )
+        self.assertEqual(result, MediaInfoType(
+            media_url='https://soundcloud.com/ruairidx/bruno',
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
         ))
 
 
