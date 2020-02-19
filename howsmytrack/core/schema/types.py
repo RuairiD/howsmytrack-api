@@ -58,11 +58,13 @@ class FeedbackResponseType(graphene.ObjectType):
 class UserType(graphene.ObjectType):
     username = graphene.String()
     rating = graphene.Float()
+    incomplete_responses = graphene.Int()
 
     def __eq__(self, other):
         return all([
             self.username == other.username,
             self.rating == other.rating,
+            self.incomplete_responses == other.incomplete_responses,
         ])
 
 

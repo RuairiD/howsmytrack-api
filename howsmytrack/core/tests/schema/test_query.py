@@ -48,6 +48,45 @@ class UserDetailsTest(TestCase):
         self.assertEqual(result, UserType(
             username='graham@brightonandhovealbion.com',
             rating=4.5,
+            incomplete_responses=0,
+        ))
+
+    def test_user_details_logged_in_incomplete_response(self):
+        other_user = FeedbackGroupsUser.create(
+            email='lewis@brightonandhovealbion.com',
+            password='password',
+        )
+        other_user.save()
+
+        feedback_group = FeedbackGroup(name='name')
+        feedback_group.save()
+
+        feedback_request = FeedbackRequest(
+            user=other_user,
+            media_url='https://soundcloud.com/ruairidx/grey',
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
+            feedback_prompt='feedback_prompt',
+            feedback_group=feedback_group,
+            email_when_grouped=True,
+        )
+        feedback_request.save()
+        
+        feedback_response = FeedbackResponse(
+            feedback_request=feedback_request,
+            user=self.user,
+        )
+        feedback_response.save()
+
+        info = Mock()
+        info.context = Mock()
+        info.context.user = self.user.user
+        result = schema.get_query_type().graphene_type().resolve_user_details(
+            info=info,
+        )
+        self.assertEqual(result, UserType(
+            username='graham@brightonandhovealbion.com',
+            rating=4.5,
+            incomplete_responses=1,
         ))
 
 
