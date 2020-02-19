@@ -94,6 +94,10 @@ class FeedbackGroupType(graphene.ObjectType):
     feedback_responses = graphene.List(FeedbackResponseType)
     # Feedback received by the user; only sent once user has completed all feedbackReponses
     user_feedback_responses = graphene.List(FeedbackResponseType)
+    # In mosts cases, this is just the same as len(user_feedback_responses); the user case for
+    # this field is where the user hasn't completed their feedback yet but we still want to
+    # show the user that other people have already completed feedback for them, spurring them on.
+    user_feedback_response_count = graphene.Int()
 
     @classmethod
     def from_model(cls, model, feedback_groups_user):
@@ -118,14 +122,15 @@ class FeedbackGroupType(graphene.ObjectType):
                     )
 
         # If user has responded to all requests, find user's request and get responses
+        submitted_responses_for_user = user_feedback_request.feedback_responses.filter(
+            submitted=True,
+        ).all()
         user_feedback_responses = None
         if all([feedback_response.submitted for feedback_response in feedback_responses]):
             # Only returned submitted responses
             user_feedback_responses = [
                 FeedbackResponseType.from_model(feedback_response)
-                for feedback_response in user_feedback_request.feedback_responses.filter(
-                    submitted=True,
-                ).all()
+                for feedback_response in submitted_responses_for_user
             ]
 
         return cls(
@@ -138,6 +143,7 @@ class FeedbackGroupType(graphene.ObjectType):
             members=model.feedback_requests.count(),
             feedback_responses=feedback_responses,
             user_feedback_responses=user_feedback_responses,
+            user_feedback_response_count=len(submitted_responses_for_user),
         )
 
     def __eq__(self, other):
@@ -150,4 +156,5 @@ class FeedbackGroupType(graphene.ObjectType):
             self.members == other.members,
             self.feedback_responses == other.feedback_responses,
             self.user_feedback_responses == other.user_feedback_responses,
+            self.user_feedback_response_count == other.user_feedback_response_count,
         ])

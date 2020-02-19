@@ -237,6 +237,7 @@ class FeedbackGroupTest(TestCase):
                     rating=3,
                 )
             ],
+            user_feedback_response_count=1,
         )
         self.assertEqual(result, expected)
 
@@ -281,6 +282,9 @@ class FeedbackGroupTest(TestCase):
                 )
             ],
             user_feedback_responses=None,
+            # Should still show user that count is 1 even if we don't
+            # send the actual response itself.
+            user_feedback_response_count=1,
         )
         self.assertEqual(result, expected)
 
@@ -396,6 +400,7 @@ class FeedbackGroupsTest(TestCase):
                     rating=3,
                 )
             ],
+            user_feedback_response_count=1,
         )]
         self.assertEqual(result, expected)
 
