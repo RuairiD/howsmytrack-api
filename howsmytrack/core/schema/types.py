@@ -118,7 +118,7 @@ class FeedbackGroupType(graphene.ObjectType):
                     )
 
         # If user has responded to all requests, find user's request and get responses
-        user_feedback_responses = []
+        user_feedback_responses = None
         if all([feedback_response.submitted for feedback_response in feedback_responses]):
             # Only returned submitted responses
             user_feedback_responses = [

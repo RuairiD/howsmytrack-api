@@ -280,7 +280,7 @@ class FeedbackGroupTest(TestCase):
                     rating=4,
                 )
             ],
-            user_feedback_responses=[],
+            user_feedback_responses=None,
         )
         self.assertEqual(result, expected)
 
