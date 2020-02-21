@@ -10,6 +10,7 @@ from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import MediaTypeChoice
+from howsmytrack.core.models import GenreChoice
 from howsmytrack.core.schema.mutation import CreateFeedbackRequest
 from howsmytrack.core.schema.mutation import DeleteFeedbackRequest
 from howsmytrack.core.schema.mutation import EditFeedbackRequest
@@ -199,6 +200,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -224,6 +226,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='not a real url',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -249,6 +252,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://twitter.com/ruairidx',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -274,6 +278,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -289,6 +294,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -303,6 +309,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://drive.google.com/file/d/roflcopter/view',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -318,6 +325,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.GOOGLEDRIVE.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -332,6 +340,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -347,6 +356,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -361,6 +371,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://onedrive.live.com/?authkey=AUTHKEY&cid=CID&id=ID',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -376,6 +387,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.ONEDRIVE.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -389,6 +401,7 @@ class CreateFeedbackRequestTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=None,
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         ).save()
 
         info = Mock()
@@ -400,6 +413,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -427,6 +441,7 @@ class CreateFeedbackRequestTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=feedback_group,
             email_when_grouped=True,
+            genre=GenreChoice.HIPHOP.name,
         ).save()
 
         info = Mock()
@@ -438,6 +453,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -453,6 +469,7 @@ class CreateFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -470,6 +487,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         ).save()
 
         info = Mock()
@@ -481,6 +499,7 @@ class CreateFeedbackRequestTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -512,6 +531,7 @@ class EditFeedbackRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
         self.existing_request.save()
 
@@ -524,6 +544,7 @@ class EditFeedbackRequestTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/bruno',
             feedback_prompt='feedback_prompt',
             email_when_grouped=False,
+            genre=GenreChoice.HIPHOP.name,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -536,6 +557,7 @@ class EditFeedbackRequestTest(TestCase):
             FeedbackRequest.objects.filter(
                 user=self.user,
                 media_url='https://soundcloud.com/ruairidx/bruno',
+                genre=GenreChoice.HIPHOP.name,
             ).count(),
             0,
         )
@@ -551,6 +573,7 @@ class EditFeedbackRequestTest(TestCase):
             media_url='not a real url',
             feedback_prompt='feedback_prompt',
             email_when_grouped=False,
+            genre=GenreChoice.HIPHOP.name,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -565,6 +588,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_url='https://soundcloud.com/ruairidx/grey',
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
+                 genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -580,6 +604,7 @@ class EditFeedbackRequestTest(TestCase):
             media_url='https://twitter.com/ruairidx',
             feedback_prompt='feedback_prompt',
             email_when_grouped=False,
+            genre=GenreChoice.HIPHOP.name,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -595,6 +620,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -610,6 +636,7 @@ class EditFeedbackRequestTest(TestCase):
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
             email_when_grouped=False,
+            genre=GenreChoice.HIPHOP.name,
         )
 
         self.assertEqual(result, CreateFeedbackRequest(
@@ -625,6 +652,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.DROPBOX.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=False,
+                genre=GenreChoice.HIPHOP.name,
             ).count(),
             1,
         )
@@ -645,6 +673,7 @@ class EditFeedbackRequestTest(TestCase):
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
             email_when_grouped=False,
+            genre=GenreChoice.HIPHOP.name,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -660,6 +689,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -680,6 +710,7 @@ class EditFeedbackRequestTest(TestCase):
             media_url='https://www.dropbox.com/s/nonsense/file.wav',
             feedback_prompt='feedback_prompt',
             email_when_grouped=False,
+            genre=GenreChoice.HIPHOP.name,
         )
 
         self.assertEqual(result, EditFeedbackRequest(
@@ -695,6 +726,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -719,6 +751,7 @@ class DeleteFeedbackRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.HIPHOP.name,
         )
         self.existing_request.save()
 
@@ -824,6 +857,7 @@ class SubmitFeedbackResponseTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
+            genre=GenreChoice.HIPHOP.name,
         )
         self.feedback_request.save()
 
@@ -957,6 +991,7 @@ class RateFeedbackResponseTest(TestCase):
             media_url='https://soundcloud.com/ruairidx/grey',
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
+            genre=GenreChoice.HIPHOP.name,
         )
         self.feedback_request.save()
 

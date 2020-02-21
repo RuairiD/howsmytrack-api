@@ -42,7 +42,14 @@ class FeedbackResponseAdmin(admin.ModelAdmin):
 
 
 class FeedbackRequestAdmin(admin.ModelAdmin):
-    list_display = ('user','media_url','media_type','time_created','feedback_group')
+    list_display = (
+        'user',
+        'media_url',
+        'media_type',
+        'genre',
+        'time_created',
+        'feedback_group',
+    )
     search_fields = ['user__user__username']
 
 

@@ -145,6 +145,7 @@ class CreateFeedbackRequest(graphene.Mutation):
 
     class Arguments:
         media_url = graphene.String(required=True)
+        genre = graphene.String(required=True)
         email_when_grouped = graphene.Boolean(required=True)
         feedback_prompt = graphene.String(required=False)
 
@@ -158,7 +159,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             self.error == other.error,
         ])
 
-    def mutate(self, info, media_url, email_when_grouped, feedback_prompt=None):
+    def mutate(self, info, media_url, genre, email_when_grouped, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
             return CreateFeedbackRequest(
@@ -215,6 +216,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             media_type=media_type,
             feedback_prompt=feedback_prompt,
             email_when_grouped=email_when_grouped,
+            genre=genre,
         )
         feedback_request.save()
 
@@ -232,6 +234,7 @@ class EditFeedbackRequest(graphene.Mutation):
         email_when_grouped = graphene.Boolean(required=False)
         media_url = graphene.String(required=False)
         feedback_prompt = graphene.String(required=False)
+        genre = graphene.String(required=False)
 
     success = graphene.Boolean()
     error = graphene.String()
@@ -243,7 +246,7 @@ class EditFeedbackRequest(graphene.Mutation):
             self.error == other.error,
         ])
 
-    def mutate(self, info, feedback_request_id, email_when_grouped=None, media_url=None, feedback_prompt=None):
+    def mutate(self, info, feedback_request_id, email_when_grouped=None, media_url=None, feedback_prompt=None, genre=None):
         user = info.context.user
         if user.is_anonymous:
             return EditFeedbackRequest(
@@ -295,6 +298,9 @@ class EditFeedbackRequest(graphene.Mutation):
             feedback_request.feedback_prompt = feedback_prompt
         if email_when_grouped is not None:
             feedback_request.email_when_grouped = email_when_grouped
+        if genre is not None:
+            feedback_request.genre = genre
+
         feedback_request.save()
 
         return EditFeedbackRequest(

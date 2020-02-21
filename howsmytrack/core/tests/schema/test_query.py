@@ -11,6 +11,7 @@ from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import MediaTypeChoice
+from howsmytrack.core.models import GenreChoice
 from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import UserType
@@ -68,6 +69,7 @@ class UserDetailsTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=feedback_group,
             email_when_grouped=True,
+            genre=GenreChoice.NO_GENRE,
         )
         feedback_request.save()
         
@@ -138,6 +140,7 @@ class FeedbackGroupTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
         self.lewis_feedback_request = FeedbackRequest(
             user=self.lewis_user,
@@ -146,6 +149,7 @@ class FeedbackGroupTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
             email_when_grouped=True,
+            genre=GenreChoice.HIPHOP.name,
         )
         self.graham_feedback_request.save()
         self.lewis_feedback_request.save()
@@ -204,6 +208,7 @@ class FeedbackGroupTest(TestCase):
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ),
             time_created=DEFAULT_DATETIME,
             members=2,
@@ -216,6 +221,7 @@ class FeedbackGroupTest(TestCase):
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
                         email_when_grouped=True,
+                        genre=GenreChoice.HIPHOP.name,
                     ),
                     feedback='grahamfeedback',
                     submitted=True,
@@ -231,6 +237,7 @@ class FeedbackGroupTest(TestCase):
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
                         email_when_grouped=True,
+                        genre=GenreChoice.ELECTRONIC.name,
                     ),
                     feedback='lewisfeedback',
                     submitted=True,
@@ -263,6 +270,7 @@ class FeedbackGroupTest(TestCase):
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ),
             time_created=DEFAULT_DATETIME,
             members=2,
@@ -275,6 +283,7 @@ class FeedbackGroupTest(TestCase):
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
                         email_when_grouped=True,
+                        genre=GenreChoice.HIPHOP.name,
                     ),
                     feedback='grahamfeedback',
                     submitted=False,
@@ -313,6 +322,7 @@ class FeedbackGroupsTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
         self.lewis_feedback_request = FeedbackRequest(
             user=self.lewis_user,
@@ -321,6 +331,7 @@ class FeedbackGroupsTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
             email_when_grouped=True,
+            genre=GenreChoice.HIPHOP.name,
         )
         self.graham_feedback_request.save()
         self.lewis_feedback_request.save()
@@ -367,6 +378,7 @@ class FeedbackGroupsTest(TestCase):
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
                 email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
             ),
             time_created=DEFAULT_DATETIME,
             members=2,
@@ -379,6 +391,7 @@ class FeedbackGroupsTest(TestCase):
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
                         email_when_grouped=True,
+                        genre=GenreChoice.HIPHOP.name,
                     ),
                     feedback='grahamfeedback',
                     submitted=True,
@@ -394,6 +407,7 @@ class FeedbackGroupsTest(TestCase):
                         media_type=MediaTypeChoice.SOUNDCLOUD.name,
                         feedback_prompt='feedback_prompt',
                         email_when_grouped=True,
+                        genre=GenreChoice.ELECTRONIC.name,
                     ),
                     feedback='lewisfeedback',
                     submitted=True,
@@ -430,6 +444,7 @@ class UnassignedRequestTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=self.feedback_group,
             email_when_grouped=True,
+            genre=GenreChoice.ELECTRONIC.name,
         )
         self.lewis_feedback_request = FeedbackRequest(
             user=self.lewis_user,
@@ -438,6 +453,7 @@ class UnassignedRequestTest(TestCase):
             feedback_prompt='feedback_prompt',
             feedback_group=None,
             email_when_grouped=True,
+            genre=GenreChoice.HIPHOP.name,
         )
         self.graham_feedback_request.save()
         self.lewis_feedback_request.save()
@@ -472,5 +488,6 @@ class UnassignedRequestTest(TestCase):
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
             feedback_prompt='feedback_prompt',
             email_when_grouped=True,
+            genre=GenreChoice.HIPHOP.name,
         )
         self.assertEqual(result, expected)

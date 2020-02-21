@@ -7,6 +7,7 @@ class FeedbackRequestType(graphene.ObjectType):
     media_type = graphene.String()
     feedback_prompt = graphene.String()
     email_when_grouped = graphene.Boolean()
+    genre = graphene.String()
 
     @classmethod
     def from_model(cls, model):
@@ -16,6 +17,7 @@ class FeedbackRequestType(graphene.ObjectType):
             media_type=model.media_type,
             feedback_prompt=model.feedback_prompt,
             email_when_grouped=model.email_when_grouped,
+            genre=model.genre,
         )
 
     def __eq__(self, other):
@@ -25,6 +27,7 @@ class FeedbackRequestType(graphene.ObjectType):
             self.media_type == other.media_type,
             self.feedback_prompt == other.feedback_prompt,
             self.email_when_grouped == other.email_when_grouped,
+            self.genre == other.genre,
         ])
 
 
