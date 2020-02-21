@@ -5,7 +5,7 @@ from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 
-MIN_RATINGS_TO_CONSIDER = 5
+MIN_RATINGS_TO_CONSIDER = 3
 MAX_RATINGS_TO_CONSIDER = 15
 
 class Command(BaseCommand):

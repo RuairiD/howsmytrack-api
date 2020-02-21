@@ -52,9 +52,17 @@ class Query(graphene.ObjectType):
         if feedback_groups_user.rating:
             rating = feedback_groups_user.rating
 
+        # Find number of responses assigned to user which are unsubmitted.
+        # Displayed as an irrtating badge to encourage the user to get on with it.
+        incomplete_responses = FeedbackResponse.objects.filter(
+            user=feedback_groups_user,
+            submitted=False,
+        ).count()
+
         return UserType(
             username=user.username,
             rating=rating,
+            incomplete_responses=incomplete_responses,
         )
 
     def resolve_media_info(self, info, media_url):
