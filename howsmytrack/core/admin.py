@@ -22,23 +22,37 @@ class FeedbackGroupAdmin(admin.ModelAdmin):
 class FeedbackGroupsUserAdmin(admin.ModelAdmin):
     search_fields = ['user__username']
     list_display = (
-        'user',
+        'username',
         'rating',
+        'date_joined'
     )
     inlines = [
         FeedbackRequestInline
     ]
 
+    def username(self, obj):
+        return obj.user.username
+
+    def date_joined(self, obj):
+        return obj.user.date_joined
+
 
 class FeedbackResponseAdmin(admin.ModelAdmin):
     list_display = (
         'user',
-        'feedback_request',
+        'feedback_request_submitted_username',
+        'feedback_request_media_url',
         'feedback',
         'submitted',
         'rating',
     )
     search_fields = ['user__user__username']
+
+    def feedback_request_submitted_username(self, obj):
+        return obj.feedback_request.user.email
+
+    def feedback_request_media_url(self, obj):
+        return obj.feedback_request.media_url
 
 
 class FeedbackRequestAdmin(admin.ModelAdmin):

@@ -9,5 +9,6 @@ omit =
     howsmytrack/jobs.py
     howsmytrack/settings.py
     howsmytrack/wsgi.py
+    howsmytrack/core/admin.py
     # Script file to be run locally, never on prod.
     howsmytrack/core/management/commands/generate_stats_csvs.py
