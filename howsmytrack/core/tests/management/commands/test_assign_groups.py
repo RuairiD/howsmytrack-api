@@ -361,5 +361,60 @@ class AssignGroupsTest(TestCase):
             ).first().feedback_group,
         )
 
+    def test_loose_genre_request(self):
+        """
+        Test that in the event that genres only have one request each, those
+        genres are merged to form a 'lucky dip' group, to ensure that everyone
+        gets a group.
+        """
+        genres = [
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.NO_GENRE.name,
+        ]
+        users = self.users[:4]
+        for i in range(0, 4):
+            FeedbackRequest(
+                user=users[i],
+                media_url='https://soundcloud.com/ruairidx/grey',
+                email_when_grouped=True,
+                genre=genres[i],
+            ).save()
 
+        call_command('assign_groups')
 
+        self.assertEqual(FeedbackGroup.objects.count(), 2)
+
+        self.assertEqual(
+            FeedbackGroup.objects.filter(
+                id=1,
+            ).first().name,
+            'Feedback Group #1 - Electronic',
+        )
+        self.assertEqual(
+            FeedbackGroup.objects.filter(
+                id=2,
+            ).first().name,
+            'Feedback Group #2 - Hip-Hop/Rap/No Genre',
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[0],
+                genre=GenreChoice.ELECTRONIC.name,
+            ).first().feedback_group,
+            FeedbackRequest.objects.filter(
+                user=users[1],
+                genre=GenreChoice.ELECTRONIC.name,
+            ).first().feedback_group,
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[2],
+                genre=GenreChoice.HIPHOP.name,
+            ).first().feedback_group,
+            FeedbackRequest.objects.filter(
+                user=users[3],
+                genre=GenreChoice.NO_GENRE.name,
+            ).first().feedback_group,
+        )

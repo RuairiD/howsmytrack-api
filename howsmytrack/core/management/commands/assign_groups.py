@@ -82,11 +82,15 @@ class Command(BaseCommand):
                     feedback_request_media_url=feedback_request.media_url,
                 )
 
-    def create_feedback_group(self, feedback_requests):
+    def create_feedback_group(self, feedback_requests, genres):
         feedback_group = FeedbackGroup(name='test replace lol')
         feedback_group.save()
 
-        feedback_group.name = f'Feedback Group #{feedback_group.id}'
+        genre_title = '/'.join([
+            genre.value
+            for genre in genres
+        ])
+        feedback_group.name = f'Feedback Group #{feedback_group.id} - {genre_title}'
         feedback_group.save()
 
         requests_count = 0
@@ -113,7 +117,7 @@ class Command(BaseCommand):
             f'Created {feedback_group.name} with {requests_count} requests and {responses_count} responses.',
         )
 
-    def assign_groups_for_requests(self, requests):
+    def assign_groups_for_requests(self, requests, genres):
         # Determine the number of requests that can be added
         # groups of FEEDBACK_GROUP_SIZE. We're actively trying
         # to avoid groups of size 2 or fewer unless it's literally
@@ -123,27 +127,33 @@ class Command(BaseCommand):
             requests_left = len(requests) - i
             if requests_left > 9 or requests_left % FEEDBACK_GROUP_SIZE == 0:
                 self.create_feedback_group(
-                    requests[i:i + FEEDBACK_GROUP_SIZE]
+                    requests[i:i + FEEDBACK_GROUP_SIZE],
+                    genres,
                 )
                 i = i + FEEDBACK_GROUP_SIZE
             elif requests_left % 3 == 0:
                 self.create_feedback_group(
-                    requests[i:i + 3]
+                    requests[i:i + 3],
+                    genres,
                 )
                 i = i + 3
             else:
                 next_group_size = REQUESTS_TO_GROUP_SIZES[requests_left]
                 self.create_feedback_group(
-                    requests[i:i + next_group_size]
+                    requests[i:i + next_group_size],
+                    genres,
                 )
                 i = i + next_group_size
 
-    def handle(self, *args, **options):
-        unassigned_feedback_requests = FeedbackRequest.objects.filter(
+    def get_unassigned_feedback_requests(self):
+        return FeedbackRequest.objects.filter(
             feedback_group=None,
         ).order_by(
             '-user__rating',
         )
+
+    def handle(self, *args, **options):
+        unassigned_feedback_requests = self.get_unassigned_feedback_requests()
 
         if unassigned_feedback_requests.count() == 1:
             # Not enough requests to make a group. Try again another time :(
@@ -152,8 +162,19 @@ class Command(BaseCommand):
         for genre in GenreChoice:
             requests_for_genre = unassigned_feedback_requests.filter(
                 genre=genre.name,
-            )
+            ).all()
 
             if len(requests_for_genre) > 1:
-                self.assign_groups_for_requests(requests_for_genre)
+                self.assign_groups_for_requests(requests_for_genre, set([genre]))
+
+        # If any requests are still unassigned (because there was only one
+        # request in a genre), attempt to form a lucky dip group across genres.
+        unassigned_feedback_requests = self.get_unassigned_feedback_requests()
+
+        if len(unassigned_feedback_requests) > 1:
+            genres = set([
+                GenreChoice[feedback_request.genre]
+                for feedback_request in unassigned_feedback_requests
+            ])
+            self.assign_groups_for_requests(unassigned_feedback_requests, genres)
         
