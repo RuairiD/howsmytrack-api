@@ -152,6 +152,32 @@ class Command(BaseCommand):
             '-user__rating',
         )
 
+    def separate_feedback_requests_by_genres(self, feedback_requests):
+        all_feedback_requests_and_genres = []
+        for genre in GenreChoice:
+            feedback_requests_by_genre = feedback_requests.filter(
+                genre=genre.name,
+            ).all()
+            if len(feedback_requests_by_genre) > 0:
+                all_feedback_requests_and_genres.append((
+                    feedback_requests_by_genre,
+                    set([genre]),
+                ))
+        return sorted(
+            all_feedback_requests_and_genres,
+            key=lambda requests_and_genres: len(requests_and_genres[0]),
+        )
+
+    def merge_genres(self, all_feedback_requests_and_genres, target_index, source_index):
+        target_feedback_requests, target_genres = all_feedback_requests_and_genres[target_index]
+        source_feedback_requests, source_genres = all_feedback_requests_and_genres[source_index]
+
+        merged_feedback_requests = target_feedback_requests | source_feedback_requests
+        merged_genres = target_genres | source_genres
+
+        all_feedback_requests_and_genres[target_index] = (merged_feedback_requests, merged_genres)
+        all_feedback_requests_and_genres.pop(source_index)
+
     def handle(self, *args, **options):
         unassigned_feedback_requests = self.get_unassigned_feedback_requests()
 
@@ -159,22 +185,30 @@ class Command(BaseCommand):
             # Not enough requests to make a group. Try again another time :(
             return
 
-        for genre in GenreChoice:
-            requests_for_genre = unassigned_feedback_requests.filter(
-                genre=genre.name,
-            ).all()
+        all_feedback_requests_and_genres = self.separate_feedback_requests_by_genres(unassigned_feedback_requests)
 
-            if len(requests_for_genre) > 1:
-                self.assign_groups_for_requests(requests_for_genre, set([genre]))
+        # If any genre has < 2 submissions, merge it with the genre with the next fewest submissions.
+        all_genres_valid = False
+        while not all_genres_valid:
+            all_genres_valid = True
+            for i in range(0, len(all_feedback_requests_and_genres)):
+                feedback_requests, genres = all_feedback_requests_and_genres[i]
+                if len(feedback_requests) < 2 and i < len(all_feedback_requests_and_genres) - 1:
+                    all_genres_valid = False
+                    self.merge_genres(
+                        all_feedback_requests_and_genres,
+                        i,
+                        i + 1
+                    )
+                    break
 
-        # If any requests are still unassigned (because there was only one
-        # request in a genre), attempt to form a lucky dip group across genres.
-        unassigned_feedback_requests = self.get_unassigned_feedback_requests()
+        # Sort by reverse length so genres with more requests are grouped first.
+        all_feedback_requests_and_genres = sorted(
+            all_feedback_requests_and_genres,
+            key=lambda requests_and_genres: -len(requests_and_genres[0]),
+        )
+        for feedback_requests, genres in all_feedback_requests_and_genres:
+            # Sort genres alphabetically for naming consistency.
+            self.assign_groups_for_requests(feedback_requests, sorted(list(genres), key=lambda genre: genre.value))
 
-        if len(unassigned_feedback_requests) > 1:
-            genres = set([
-                GenreChoice[feedback_request.genre]
-                for feedback_request in unassigned_feedback_requests
-            ])
-            self.assign_groups_for_requests(unassigned_feedback_requests, genres)
         

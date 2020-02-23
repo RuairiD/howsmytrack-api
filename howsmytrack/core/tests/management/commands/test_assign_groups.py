@@ -312,13 +312,16 @@ class AssignGroupsTest(TestCase):
         genres = [
             GenreChoice.ELECTRONIC.name,
             GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
             GenreChoice.HIPHOP.name,
             GenreChoice.HIPHOP.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.NO_GENRE.name,
             GenreChoice.NO_GENRE.name,
             GenreChoice.NO_GENRE.name,
         ]
-        users = self.users[:6]
-        for i in range(0, 6):
+        users = self.users[:len(genres)]
+        for i in range(0, len(genres)):
             FeedbackRequest(
                 user=users[i],
                 media_url='https://soundcloud.com/ruairidx/grey',
@@ -330,35 +333,80 @@ class AssignGroupsTest(TestCase):
 
         self.assertEqual(FeedbackGroup.objects.count(), 3)
 
+        electronic_feedback_group = FeedbackGroup.objects.filter(
+            id=1,
+        ).first()
+        hiphop_feedback_group = FeedbackGroup.objects.filter(
+            id=2,
+        ).first()
+        no_genre_feedback_group = FeedbackGroup.objects.filter(
+            id=3,
+        ).first()
+
         self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[0],
                 genre=GenreChoice.ELECTRONIC.name,
             ).first().feedback_group,
+            electronic_feedback_group,
+        )
+        self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[1],
                 genre=GenreChoice.ELECTRONIC.name,
             ).first().feedback_group,
+            electronic_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[2],
-                genre=GenreChoice.HIPHOP.name,
+                genre=GenreChoice.ELECTRONIC.name,
             ).first().feedback_group,
+            electronic_feedback_group,
+        )
+
+        self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[3],
                 genre=GenreChoice.HIPHOP.name,
             ).first().feedback_group,
+            hiphop_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[4],
-                genre=GenreChoice.NO_GENRE.name,
+                genre=GenreChoice.HIPHOP.name,
             ).first().feedback_group,
+            hiphop_feedback_group,
+        )
+        self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[5],
+                genre=GenreChoice.HIPHOP.name,
+            ).first().feedback_group,
+            hiphop_feedback_group,
+        )
+
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[6],
                 genre=GenreChoice.NO_GENRE.name,
             ).first().feedback_group,
+            no_genre_feedback_group,
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[7],
+                genre=GenreChoice.NO_GENRE.name,
+            ).first().feedback_group,
+            no_genre_feedback_group,
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[8],
+                genre=GenreChoice.NO_GENRE.name,
+            ).first().feedback_group,
+            no_genre_feedback_group,
         )
 
     def test_loose_genre_request(self):
@@ -370,11 +418,14 @@ class AssignGroupsTest(TestCase):
         genres = [
             GenreChoice.ELECTRONIC.name,
             GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.HIPHOP.name,
             GenreChoice.HIPHOP.name,
             GenreChoice.NO_GENRE.name,
         ]
-        users = self.users[:4]
-        for i in range(0, 4):
+        users = self.users[:len(genres)]
+        for i in range(0, len(genres)):
             FeedbackRequest(
                 user=users[i],
                 media_url='https://soundcloud.com/ruairidx/grey',
@@ -386,35 +437,71 @@ class AssignGroupsTest(TestCase):
 
         self.assertEqual(FeedbackGroup.objects.count(), 2)
 
+        electronic_feedback_group = FeedbackGroup.objects.filter(
+            id=1,
+        ).first()
+        mixed_feedback_group = FeedbackGroup.objects.filter(
+            id=2,
+        ).first()
         self.assertEqual(
-            FeedbackGroup.objects.filter(
-                id=1,
-            ).first().name,
+            electronic_feedback_group.name,
             'Feedback Group #1 - Electronic',
         )
         self.assertEqual(
-            FeedbackGroup.objects.filter(
-                id=2,
-            ).first().name,
+            mixed_feedback_group.name,
             'Feedback Group #2 - Hip-Hop/Rap/No Genre',
         )
+
         self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[0],
                 genre=GenreChoice.ELECTRONIC.name,
             ).first().feedback_group,
+            electronic_feedback_group,
+        )
+        self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[1],
                 genre=GenreChoice.ELECTRONIC.name,
             ).first().feedback_group,
+            electronic_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[2],
-                genre=GenreChoice.HIPHOP.name,
+                genre=GenreChoice.ELECTRONIC.name,
             ).first().feedback_group,
+            electronic_feedback_group,
+        )
+        self.assertEqual(
             FeedbackRequest.objects.filter(
                 user=users[3],
+                genre=GenreChoice.ELECTRONIC.name,
+            ).first().feedback_group,
+            electronic_feedback_group,
+        )
+
+        # Hiphop and No Genre requests should be in one super group
+        # since there were not enough No Genre requsts to create their
+        # own groups and should have been merged with the hiphop requests.
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[4],
+                genre=GenreChoice.HIPHOP.name,
+            ).first().feedback_group,
+            mixed_feedback_group,
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[5],
+                genre=GenreChoice.HIPHOP.name,
+            ).first().feedback_group,
+            mixed_feedback_group,
+        )
+        self.assertEqual(
+            FeedbackRequest.objects.filter(
+                user=users[6],
                 genre=GenreChoice.NO_GENRE.name,
             ).first().feedback_group,
+            mixed_feedback_group,
         )
