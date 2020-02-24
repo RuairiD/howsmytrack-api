@@ -30,6 +30,14 @@ class Command(BaseCommand):
     def send_reminder_email_for_request(self, feedback_request):
         message = render_to_string('group_reminder_email.txt', {
             'email': feedback_request.user.email,
+            'feedback_group_name': feedback_request.feedback_group.name,
+            'feedback_group_url': WEBSITE_URL.format(
+                path=f'/group/{feedback_request.feedback_group.id}'
+            ),
+        })
+        html_message = render_to_string('group_reminder_email.html', {
+            'email': feedback_request.user.email,
+            'feedback_group_name': feedback_request.feedback_group.name,
             'feedback_group_url': WEBSITE_URL.format(
                 path=f'/group/{feedback_request.feedback_group.id}'
             ),
@@ -40,6 +48,7 @@ class Command(BaseCommand):
             message=message,
             from_email=None, # Use default in settings.py
             recipient_list=[feedback_request.user.email],
+            html_message=html_message,
         )
 
         feedback_request.reminder_email_sent = True

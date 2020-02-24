@@ -175,6 +175,10 @@ class AssignGroupsTest(TestCase):
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i + 1].email)
             self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)
+            # Verify that HTML content was sent in the email as well
+            self.assertTrue(len(email.alternatives) > 0)
+            self.assertTrue(len(email.alternatives[0][0]) > 0) # Message content
+            self.assertEqual(email.alternatives[0][1], 'text/html')
 
     def test_assign_groups_uneven_groups(self):
         # Use an abnormal number of feedback requests to force uneven groups.

@@ -3,5 +3,5 @@ Hi {{ email }},
 
 Don't forget to check out your feedback group and write feedback for its other members; once you've written feedback for everyone else, you'll be able to see the feedback they've written for you!
 
-Your group: {{ feedback_group_url }}
+{{ feedback_group_name }}: {{ feedback_group_url }}
 {% endautoescape %}

@@ -57,9 +57,16 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         pass
 
-    def send_email_to_group_member(self, email, feedback_group_url, feedback_request_media_url):
+    def send_email_to_group_member(self, email, feedback_group_name, feedback_group_url, feedback_request_media_url):
         message = render_to_string('new_group_email.txt', {
             'email': email,
+            'feedback_group_name': feedback_group_name,
+            'feedback_group_url': feedback_group_url,
+            'feedback_request_media_url': feedback_request_media_url,
+        })
+        html_message = render_to_string('new_group_email.html', {
+            'email': email,
+            'feedback_group_name': feedback_group_name,
             'feedback_group_url': feedback_group_url,
             'feedback_request_media_url': feedback_request_media_url,
         })
@@ -69,6 +76,7 @@ class Command(BaseCommand):
             message=message,
             from_email=None, # Use default in settings.py
             recipient_list=[email],
+            html_message=html_message,
         )
 
     def send_emails_for_group(self, feedback_group):
@@ -76,6 +84,7 @@ class Command(BaseCommand):
             if feedback_request.email_when_grouped:
                 self.send_email_to_group_member(
                     email=feedback_request.user.email,
+                    feedback_group_name=feedback_group.name,
                     feedback_group_url=WEBSITE_URL.format(
                         path=f'/group/{feedback_group.id}'
                     ),

@@ -3,7 +3,5 @@ Hi {{ email }},
 
 Good news! Your feedback request has been added to a group; please visit the link below to leave feedback for the other members of your group and read your own feedback.
 
-{{ feedback_group_url }}
-
-Your request: {{ feedback_request_media_url }}
+{{ feedback_group_name }}: {{ feedback_group_url }}
 {% endautoescape %}
