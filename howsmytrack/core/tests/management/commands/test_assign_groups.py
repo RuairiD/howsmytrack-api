@@ -675,3 +675,49 @@ class AssignGroupsTest(TestCase):
                 0,
             )
         
+    def test_trackless_requests_with_uneven_groups(self):
+        """In the event that we have uneven groups, smaller groups are prioritised to get additional trackless requests."""
+        genres_with_tracks = [
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+        ]
+        genres_without_tracks = [
+            GenreChoice.ELECTRONIC.name,
+        ]
+
+        feedback_requests_with_tracks = []
+        for i in range(0, len(genres_with_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[i],
+                media_url='https://soundcloud.com/ruairidx/grey',
+                email_when_grouped=True,
+                genre=genres_with_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_with_tracks.append(feedback_request)
+
+        feedback_requests_without_tracks = []
+        for i in range(0, len(genres_without_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[len(genres_with_tracks) + i],
+                media_url=None,
+                email_when_grouped=True,
+                genre=genres_without_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_without_tracks.append(feedback_request)
+
+        call_command('assign_groups')
+
+        self.assertEqual(FeedbackGroup.objects.count(), 2)
+        self.assertEqual(FeedbackResponse.objects.count(), 10)
+        for feedback_group in FeedbackGroup.objects.all():
+            self.assertEqual(
+                feedback_group.feedback_requests.count(),
+                3,
+            )
+        
+        
