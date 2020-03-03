@@ -509,3 +509,169 @@ class AssignGroupsTest(TestCase):
             ).first().feedback_group,
             mixed_feedback_group,
         )
+
+    def test_trackless_requests(self):
+        genres_with_tracks = [
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.HIPHOP.name,
+        ]
+        genres_without_tracks = [
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.HIPHOP.name,
+        ]
+
+        feedback_requests_with_tracks = []
+        for i in range(0, len(genres_with_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[i],
+                media_url='https://soundcloud.com/ruairidx/grey',
+                email_when_grouped=True,
+                genre=genres_with_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_with_tracks.append(feedback_request)
+
+        feedback_requests_without_tracks = []
+        for i in range(0, len(genres_without_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[len(genres_with_tracks) + i],
+                media_url=None,
+                email_when_grouped=True,
+                genre=genres_without_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_without_tracks.append(feedback_request)
+
+        call_command('assign_groups')
+
+        self.assertEqual(FeedbackGroup.objects.count(), 2)
+        self.assertEqual(FeedbackResponse.objects.count(), 8)
+        for feedback_group in FeedbackGroup.objects.all():
+            self.assertEqual(
+                feedback_group.feedback_requests.count(),
+                3,
+            )
+            self.assertEqual(
+                feedback_group.feedback_requests.filter(media_url__isnull=False).count(),
+                2,
+            )
+            self.assertEqual(
+                feedback_group.feedback_requests.filter(media_url__isnull=True).count(),
+                1,
+            )
+            self.assertEqual(
+                FeedbackResponse.objects.filter(feedback_request__feedback_group=feedback_group).count(),
+                4,
+            )
+        
+        # Trackless requests should have one response assigned to them but a response from a tracked user and a trackless user.
+        for feedback_request_with_track in feedback_requests_with_tracks:
+            feedback_request_with_track.refresh_from_db()
+            self.assertEqual(
+                FeedbackResponse.objects.filter(user=feedback_request_with_track.user).count(),
+                1,
+            )
+            self.assertEqual(
+                FeedbackResponse.objects.filter(feedback_request=feedback_request_with_track).count(),
+                2,
+            )
+        
+        # Trackless requests should have two responses assigned to them but no responses of their own (since they have no track) 
+        for feedback_request_without_track in feedback_requests_without_tracks:
+            feedback_request_without_track.refresh_from_db()
+            self.assertEqual(
+                FeedbackResponse.objects.filter(user=feedback_request_without_track.user).count(),
+                2,
+            )
+            self.assertEqual(
+                FeedbackResponse.objects.filter(feedback_request=feedback_request_without_track).count(),
+                0,
+            )
+
+    def test_trackless_requests_with_few_groups(self):
+        """In the event that we have more trackless requests than groups, groups get more FeedbackResponses. Hooray!"""
+        genres_with_tracks = [
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.HIPHOP.name,
+        ]
+        genres_without_tracks = [
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.HIPHOP.name,
+            GenreChoice.HIPHOP.name,
+        ]
+
+        feedback_requests_with_tracks = []
+        for i in range(0, len(genres_with_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[i],
+                media_url='https://soundcloud.com/ruairidx/grey',
+                email_when_grouped=True,
+                genre=genres_with_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_with_tracks.append(feedback_request)
+
+        feedback_requests_without_tracks = []
+        for i in range(0, len(genres_without_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[len(genres_with_tracks) + i],
+                media_url=None,
+                email_when_grouped=True,
+                genre=genres_without_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_without_tracks.append(feedback_request)
+
+        call_command('assign_groups')
+
+        self.assertEqual(FeedbackGroup.objects.count(), 2)
+        self.assertEqual(FeedbackResponse.objects.count(), 16)
+        for feedback_group in FeedbackGroup.objects.all():
+            self.assertEqual(
+                feedback_group.feedback_requests.count(),
+                5,
+            )
+            self.assertEqual(
+                feedback_group.feedback_requests.filter(media_url__isnull=False).count(),
+                2,
+            )
+            self.assertEqual(
+                feedback_group.feedback_requests.filter(media_url__isnull=True).count(),
+                3,
+            )
+            self.assertEqual(
+                FeedbackResponse.objects.filter(feedback_request__feedback_group=feedback_group).count(),
+                8,
+            )
+        
+        # Trackless requests should have one response assigned to them but a response from a tracked user and multiple trackless users.
+        for feedback_request_with_track in feedback_requests_with_tracks:
+            feedback_request_with_track.refresh_from_db()
+            self.assertEqual(
+                FeedbackResponse.objects.filter(user=feedback_request_with_track.user).count(),
+                1,
+            )
+            self.assertEqual(
+                FeedbackResponse.objects.filter(feedback_request=feedback_request_with_track).count(),
+                4,
+            )
+        
+        # Trackless requests should have two responses assigned to them but no responses of their own (since they have no track) 
+        for feedback_request_without_track in feedback_requests_without_tracks:
+            feedback_request_without_track.refresh_from_db()
+            self.assertEqual(
+                FeedbackResponse.objects.filter(user=feedback_request_without_track.user).count(),
+                2,
+            )
+            self.assertEqual(
+                FeedbackResponse.objects.filter(feedback_request=feedback_request_without_track).count(),
+                0,
+            )
+        
