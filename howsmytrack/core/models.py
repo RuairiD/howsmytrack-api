@@ -69,17 +69,31 @@ class GenreChoice(Enum):
 
 class FeedbackRequest(models.Model):
     """
-    A request for feedback submitted by a user.
+    A request to join a feedback group submitted by the user. If the user
+    provides a `media_url`, the request will be added to a group and the user
+    can both provide feedback for others and receive feedback for their own.
+    If the user does *not* provide a `media_url`, the request can still be
+    added to a group but the user will not receive any feedback, although they
+    can still provide it.
     """
     user = models.ForeignKey(
         FeedbackGroupsUser,
         related_name='feedback_requests',
         on_delete=models.CASCADE
     )
-    media_url = models.CharField(max_length=255)
+    media_url = models.CharField(
+        max_length=255,
+        # If this field is empty, the request is considered to be 'trackless'
+        # and the user will be added to a group to give feedback but will not
+        # receive any feedback.
+        blank=True,
+        null=True,
+    )
     media_type = models.CharField(
         max_length=32,
         choices=[(tag.name, tag.value) for tag in MediaTypeChoice],
+        blank=True,
+        null=True,
     )
     feedback_prompt = models.TextField(
         blank=True,
@@ -89,6 +103,8 @@ class FeedbackRequest(models.Model):
         max_length=32,
         choices=[(tag.name, tag.value) for tag in GenreChoice],
         default=GenreChoice.NO_GENRE.name,
+        blank=True,
+        null=True,
     )
     feedback_group = models.ForeignKey(
         FeedbackGroup,

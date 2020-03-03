@@ -109,6 +109,9 @@ class Command(BaseCommand):
             feedback_request.save()
             requests_count += 1
 
+            # TODO: try and remove this; ideally we'd just create FeedbackResponse rows
+            # only when a user submits feedback.
+            #
             # Create empty feedback responses for each request-user pairing in the group.
             for other_feedback_request in feedback_requests:
                 if feedback_request != other_feedback_request:
@@ -126,40 +129,37 @@ class Command(BaseCommand):
             f'Created {feedback_group.name} with {requests_count} requests and {responses_count} responses.',
         )
 
+        return feedback_group
+
     def assign_groups_for_requests(self, requests, genres):
         # Determine the number of requests that can be added
         # groups of FEEDBACK_GROUP_SIZE. We're actively trying
         # to avoid groups of size 2 or fewer unless it's literally
         # impossible.
+        feedback_groups = set()
         i = 0
         while i < len(requests):
             requests_left = len(requests) - i
             if requests_left > 9 or requests_left % FEEDBACK_GROUP_SIZE == 0:
-                self.create_feedback_group(
+                feedback_groups.add(self.create_feedback_group(
                     requests[i:i + FEEDBACK_GROUP_SIZE],
                     genres,
-                )
+                ))
                 i = i + FEEDBACK_GROUP_SIZE
             elif requests_left % 3 == 0:
-                self.create_feedback_group(
+                feedback_groups.add(self.create_feedback_group(
                     requests[i:i + 3],
                     genres,
-                )
+                ))
                 i = i + 3
             else:
                 next_group_size = REQUESTS_TO_GROUP_SIZES[requests_left]
-                self.create_feedback_group(
+                feedback_groups.add(self.create_feedback_group(
                     requests[i:i + next_group_size],
                     genres,
-                )
+                ))
                 i = i + next_group_size
-
-    def get_unassigned_feedback_requests(self):
-        return FeedbackRequest.objects.filter(
-            feedback_group=None,
-        ).order_by(
-            '-user__rating',
-        )
+        return feedback_groups
 
     def separate_feedback_requests_by_genres(self, feedback_requests):
         all_feedback_requests_and_genres = []
@@ -188,13 +188,20 @@ class Command(BaseCommand):
         all_feedback_requests_and_genres.pop(source_index)
 
     def handle(self, *args, **options):
-        unassigned_feedback_requests = self.get_unassigned_feedback_requests()
+        unassigned_feedback_requests_with_tracks = FeedbackRequest.objects.filter(
+            feedback_group=None,
+            media_url__isnull=False,
+        ).order_by(
+            '-user__rating',
+        )
 
         if unassigned_feedback_requests.count() == 1:
             # Not enough requests to make a group. Try again another time :(
             return
 
-        all_feedback_requests_and_genres = self.separate_feedback_requests_by_genres(unassigned_feedback_requests)
+        all_feedback_requests_and_genres = self.separate_feedback_requests_by_genres(
+            unassigned_feedback_requests
+        )
 
         # If any genre has < 2 submissions, merge it with the genre with the next fewest submissions.
         all_genres_valid = False
@@ -216,8 +223,31 @@ class Command(BaseCommand):
             all_feedback_requests_and_genres,
             key=lambda requests_and_genres: -len(requests_and_genres[0]),
         )
+
+        feedback_groups = set()
         for feedback_requests, genres in all_feedback_requests_and_genres:
             # Sort genres alphabetically for naming consistency.
-            self.assign_groups_for_requests(feedback_requests, sorted(list(genres), key=lambda genre: genre.value))
+            groups_for_genres = self.assign_groups_for_requests(
+                requests=feedback_requests,
+                genres=sorted(list(genres), key=lambda genre: genre.value)
+            )
+            feedback_groups = feedback_groups | groups_for_genres
 
-        
+        # Distribute trackless requests across existing groups,
+        # priortising small groups before ratings.
+        unassigned_feedback_requests_without_tracks = FeedbackRequest.objects.filter(
+            feedback_group=None,
+            media_url__isnull=True,
+        ).order_by(
+            '-user__rating',
+        )
+
+        trackless_feedback_requests_and_genres = self.separate_feedback_requests_by_genres(
+            unassigned_feedback_requests_without_tracks
+        )
+
+        # TODO scatter trackless requests across groups for the correct genre
+        # The tricky bit is going to be groups with multiple genres as the genres
+        # aren't actually stored in the group, just in the name, and doing this
+        # string-based is going to be a real shit. Other options include keeping
+        # genres along with feedback_groups and checking them here.

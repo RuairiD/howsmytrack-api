@@ -144,9 +144,9 @@ def validate_media_url(media_url):
 class CreateFeedbackRequest(graphene.Mutation):
 
     class Arguments:
-        media_url = graphene.String(required=True)
-        genre = graphene.String(required=True)
-        email_when_grouped = graphene.Boolean(required=True)
+        media_url = graphene.String(required=False)
+        genre = graphene.String(required=False)
+        email_when_grouped = graphene.Boolean(required=False)
         feedback_prompt = graphene.String(required=False)
 
     success = graphene.Boolean()
@@ -159,7 +159,7 @@ class CreateFeedbackRequest(graphene.Mutation):
             self.error == other.error,
         ])
 
-    def mutate(self, info, media_url, genre, email_when_grouped, feedback_prompt=None):
+    def mutate(self, info, media_url=None, genre=None, email_when_grouped=False, feedback_prompt=None):
         user = info.context.user
         if user.is_anonymous:
             return CreateFeedbackRequest(
@@ -168,20 +168,21 @@ class CreateFeedbackRequest(graphene.Mutation):
                 invalid_media_url=False,
             )
 
-        # Validate the media url
-        media_type = None
-        try:
-            media_type = validate_media_url(media_url)
-        except ValidationError as e:
-            return CreateFeedbackRequest(
-                success=False,
-                error=e.message,
-                invalid_media_url=True,
-            )
-
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
+
+        # Validate the media url, if one exists.
+        media_type = None
+        if media_url:
+            try:
+                media_type = validate_media_url(media_url)
+            except ValidationError as e:
+                return CreateFeedbackRequest(
+                    success=False,
+                    error=e.message,
+                    invalid_media_url=True,
+                )
     
         # Only create a new request if the user has an outstanding, ungrouped request
         # (should only happen if user's request is from within the last 24 hours or
@@ -199,16 +200,17 @@ class CreateFeedbackRequest(graphene.Mutation):
 
         # Reject requests for the same URL (if the other submission hasn't been grouped yet)
         # This prevents users creating multiple accounts to request the same track.
-        existing_track_requests = FeedbackRequest.objects.filter(
-            media_url=media_url,
-            feedback_group=None,
-        ).count()
-        if existing_track_requests > 0:
-            return CreateFeedbackRequest(
-                success=False,
-                error='A request for this track is already pending.',
-                invalid_media_url=False,
-            )
+        if media_url:
+            existing_track_requests = FeedbackRequest.objects.filter(
+                media_url=media_url,
+                feedback_group=None,
+            ).count()
+            if existing_track_requests > 0:
+                return CreateFeedbackRequest(
+                    success=False,
+                    error='A request for this track is already pending.',
+                    invalid_media_url=False,
+                )
         
         feedback_request = FeedbackRequest(
             user=feedback_groups_user,
@@ -255,20 +257,21 @@ class EditFeedbackRequest(graphene.Mutation):
                 invalid_media_url=False,
             )
 
-        # Validate the media url
-        media_type = None
-        try:
-            media_type = validate_media_url(media_url)
-        except ValidationError as e:
-            return EditFeedbackRequest(
-                success=False,
-                error=e.message,
-                invalid_media_url=True,
-            )
-
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
+
+        # Validate the media url
+        media_type = None
+        if media_url:
+            try:
+                media_type = validate_media_url(media_url)
+            except ValidationError as e:
+                return EditFeedbackRequest(
+                    success=False,
+                    error=e.message,
+                    invalid_media_url=True,
+                )
     
         # Reject the edit if the user does not own the request (or if it doesn't exist)
         feedback_request = FeedbackRequest.objects.filter(
@@ -290,9 +293,8 @@ class EditFeedbackRequest(graphene.Mutation):
                 invalid_media_url=False,
             )
         
-        if media_url:
-            feedback_request.media_url = media_url
-            feedback_request.media_type = media_type
+        feedback_request.media_url = media_url
+        feedback_request.media_type = media_type
         # Allow empty feedback prompt
         if feedback_prompt is not None:
             feedback_request.feedback_prompt = feedback_prompt
