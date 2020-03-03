@@ -91,8 +91,10 @@ class FeedbackGroupType(graphene.ObjectType):
     media_type = graphene.String() # TODO deprecate
     # The logged in user's request in this group
     feedback_request = graphene.Field(FeedbackRequestType)
-    # The number of users in the group.
+    # The number of users in the group with tracks.
     members = graphene.Int()
+    # The number of users in the group without tracks.
+    trackless_members = graphene.Int()
     # User's feedback responses for other group member's requests 
     feedback_responses = graphene.List(FeedbackResponseType)
     # Feedback received by the user; only sent once user has completed all feedbackReponses
@@ -143,7 +145,8 @@ class FeedbackGroupType(graphene.ObjectType):
             media_url=user_feedback_request.media_url,
             media_type=user_feedback_request.media_type,
             feedback_request=FeedbackRequestType.from_model(user_feedback_request),
-            members=model.feedback_requests.count(),
+            members=model.feedback_requests.filter(media_url__isnull=False).count(),
+            trackless_members=model.feedback_requests.filter(media_url__isnull=True).count(),
             feedback_responses=feedback_responses,
             user_feedback_responses=user_feedback_responses,
             user_feedback_response_count=len(submitted_responses_for_user),
@@ -157,6 +160,7 @@ class FeedbackGroupType(graphene.ObjectType):
             self.media_url == other.media_url,
             self.media_type == other.media_type,
             self.members == other.members,
+            self.trackless_members == other.trackless_members,
             self.feedback_responses == other.feedback_responses,
             self.user_feedback_responses == other.user_feedback_responses,
             self.user_feedback_response_count == other.user_feedback_response_count,

@@ -212,6 +212,7 @@ class FeedbackGroupTest(TestCase):
             ),
             time_created=DEFAULT_DATETIME,
             members=2,
+            trackless_members=0,
             feedback_responses=[
                 FeedbackResponseType(
                     id=1,
@@ -274,6 +275,7 @@ class FeedbackGroupTest(TestCase):
             ),
             time_created=DEFAULT_DATETIME,
             members=2,
+            trackless_members=0,
             feedback_responses=[
                 FeedbackResponseType(
                     id=1,
@@ -294,6 +296,55 @@ class FeedbackGroupTest(TestCase):
             # Should still show user that count is 1 even if we don't
             # send the actual response itself.
             user_feedback_response_count=1,
+        )
+        self.assertEqual(result, expected)
+
+    def test_logged_in_with_trackless_requests(self):
+        self.lewis_feedback_response.delete()
+        self.graham_feedback_request.media_url = None
+        self.graham_feedback_request.save()
+
+        info = Mock()
+        info.context = Mock()
+        info.context.user = self.graham_user.user
+        result = schema.get_query_type().graphene_type().resolve_feedback_group(
+            info=info,
+            feedback_group_id=self.feedback_group.id,
+        )
+        expected = FeedbackGroupType(
+            id=self.feedback_group.id,
+            name='name',
+            media_url=None,
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
+            feedback_request=FeedbackRequestType(
+                id=1,
+                media_url=None,
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
+            ),
+            time_created=DEFAULT_DATETIME,
+            members=1,
+            trackless_members=1,
+            feedback_responses=[
+                FeedbackResponseType(
+                    id=1,
+                    feedback_request=FeedbackRequestType(
+                        id=2,
+                        media_url='https://soundcloud.com/ruairidx/bruno',
+                        media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                        feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
+                        genre=GenreChoice.HIPHOP.name,
+                    ),
+                    feedback='grahamfeedback',
+                    submitted=True,
+                    rating=4,
+                )
+            ],
+            user_feedback_responses=[],
+            user_feedback_response_count=0,
         )
         self.assertEqual(result, expected)
 
@@ -382,6 +433,7 @@ class FeedbackGroupsTest(TestCase):
             ),
             time_created=DEFAULT_DATETIME,
             members=2,
+            trackless_members=0,
             feedback_responses=[
                 FeedbackResponseType(
                     id=1,
