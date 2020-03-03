@@ -1,0 +1,7 @@
+{% autoescape off %}
+Hi {{ email }},
+
+Good news! You've been added to a feedback group; please visit the link below to leave feedback for the other members of your group.
+
+{{ feedback_group_name }}: {{ feedback_group_url }}
+{% endautoescape %}

@@ -1,0 +1,7 @@
+{% autoescape off %}
+Hi {{ email }},
+
+Don't forget to check out your feedback group and write feedback for its other members!
+
+{{ feedback_group_name }}: {{ feedback_group_url }}
+{% endautoescape %}

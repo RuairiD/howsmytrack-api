@@ -155,3 +155,18 @@ class SendGroupReminderEmailsTest(TestCase):
         self.lewis_feedback_request.refresh_from_db()
         self.assertTrue(self.graham_feedback_request.reminder_email_sent)
         self.assertFalse(self.lewis_feedback_request.reminder_email_sent)
+
+
+    def test_trackless_request(self):
+        self.lewis_feedback_request.media_url = None
+        self.lewis_feedback_request.save()
+
+        with patch('django.utils.timezone.now', Mock(return_value=FUTURE)):
+            call_command('send_group_reminder_emails')
+
+        self.assertEqual(len(mail.outbox), 2)
+
+        self.lewis_feedback_request.refresh_from_db()
+        self.assertTrue(self.lewis_feedback_request.reminder_email_sent)
+        # Really crude way to check that the trackless email template was used.
+        self.assertTrue("Don't forget to check out your feedback group and write feedback for its other members!" in mail.outbox[1].body)

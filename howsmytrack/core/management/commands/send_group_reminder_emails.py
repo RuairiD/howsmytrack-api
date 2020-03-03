@@ -28,20 +28,36 @@ class Command(BaseCommand):
         pass
 
     def send_reminder_email_for_request(self, feedback_request):
-        message = render_to_string('group_reminder_email.txt', {
-            'email': feedback_request.user.email,
-            'feedback_group_name': feedback_request.feedback_group.name,
-            'feedback_group_url': WEBSITE_URL.format(
-                path=f'/group/{feedback_request.feedback_group.id}'
-            ),
-        })
-        html_message = render_to_string('group_reminder_email.html', {
-            'email': feedback_request.user.email,
-            'feedback_group_name': feedback_request.feedback_group.name,
-            'feedback_group_url': WEBSITE_URL.format(
-                path=f'/group/{feedback_request.feedback_group.id}'
-            ),
-        })
+        if feedback_request.media_url is not None:
+            message = render_to_string('group_reminder_email.txt', {
+                'email': feedback_request.user.email,
+                'feedback_group_name': feedback_request.feedback_group.name,
+                'feedback_group_url': WEBSITE_URL.format(
+                    path=f'/group/{feedback_request.feedback_group.id}'
+                ),
+            })
+            html_message = render_to_string('group_reminder_email.html', {
+                'email': feedback_request.user.email,
+                'feedback_group_name': feedback_request.feedback_group.name,
+                'feedback_group_url': WEBSITE_URL.format(
+                    path=f'/group/{feedback_request.feedback_group.id}'
+                ),
+            })
+        else:
+            message = render_to_string('group_reminder_email_trackless.txt', {
+                'email': feedback_request.user.email,
+                'feedback_group_name': feedback_request.feedback_group.name,
+                'feedback_group_url': WEBSITE_URL.format(
+                    path=f'/group/{feedback_request.feedback_group.id}'
+                ),
+            })
+            html_message = render_to_string('group_reminder_email_trackless.html', {
+                'email': feedback_request.user.email,
+                'feedback_group_name': feedback_request.feedback_group.name,
+                'feedback_group_url': WEBSITE_URL.format(
+                    path=f'/group/{feedback_request.feedback_group.id}'
+                ),
+            })
 
         send_mail(
             subject="how's my track? - don't forget your feedback group!",
