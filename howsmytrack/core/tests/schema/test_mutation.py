@@ -2,6 +2,7 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 import graphql_jwt
+from django.conf import settings
 from django.test import TestCase
 from graphene.test import Client
 
@@ -25,6 +26,81 @@ from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
 from howsmytrack.schema import schema
+
+
+class ObtainJSONWebTokenCaseInsensitiveTest(TestCase):
+    def setUp(self):
+        self.user = FeedbackGroupsUser.create(
+            email='graham@brightonandhovealbion.com',
+            password='password',
+        )
+        self.user.save()
+
+    def test_same_case(self):
+        info = Mock()
+        result = schema.get_mutation_type().fields['tokenAuth'].resolver(
+            root=Mock(),
+            info=info,
+            username='graham@brightonandhovealbion.com',
+            password='password',
+        )
+        self.assertIsNotNone(result)
+        self.assertIsNotNone(result.token)
+        self.assertEqual(
+            graphql_jwt.utils.jwt_decode(result.token).get('username'),
+            'graham@brightonandhovealbion.com',
+        )
+
+    def test_different_case(self):
+        info = Mock()
+        result = schema.get_mutation_type().fields['tokenAuth'].resolver(
+            root=Mock(),
+            info=info,
+            username='GRAHAM@brightonandhovealbion.com',
+            password='password',
+        )
+        self.assertIsNotNone(result)
+        self.assertIsNotNone(result.token)
+        self.assertEqual(
+            graphql_jwt.utils.jwt_decode(result.token).get('username'),
+            'graham@brightonandhovealbion.com',
+        )
+
+    def test_duplicates(self):
+        """Since some accounts had already been created with the same email
+        in different cases when this change was made, allow logging into these
+        existing accounts using the exact email they were registered with,
+        including casing.
+        """
+        duplicate_user = FeedbackGroupsUser.create(
+            email='GRAHAM@brightonandhovealbion.com',
+            password='password',
+        )
+        duplicate_user.save()
+
+        info = Mock()
+        result = schema.get_mutation_type().fields['tokenAuth'].resolver(
+            root=Mock(),
+            info=info,
+            username='GRAHAM@brightonandhovealbion.com',
+            password='password',
+        )
+        self.assertIsNotNone(result)
+        self.assertIsNotNone(result.token)
+        self.assertEqual(
+            graphql_jwt.utils.jwt_decode(result.token).get('username'),
+            'GRAHAM@brightonandhovealbion.com',
+        )
+
+    def test_different_username(self):
+        info = Mock()
+        with self.assertRaises(graphql_jwt.exceptions.JSONWebTokenError):
+            result = schema.get_mutation_type().fields['tokenAuth'].resolver(
+                root=Mock(),
+                info=info,
+                username='lewis@brightonandhovealbion.com',
+                password='password',
+            )
 
 
 class RefreshTokenFromCookieTest(TestCase):
@@ -113,6 +189,28 @@ class RegisterUserTest(TestCase):
         self.assertEqual(
             FeedbackGroupsUser.objects.filter(
                 user__username='graham@brightonandhovealbion.com',
+            ).count(),
+            1
+        )
+
+    def test_existing_account_different_case(self):
+        info = Mock()
+        result = schema.get_mutation_type().fields['registerUser'].resolver(
+            self=Mock(),
+            info=info,
+            email='GRAHAM@brightonandhovealbion.com',
+            password='sussexbythesea1901',
+            password_repeat='sussexbythesea1901',
+        )
+
+        self.assertEqual(result, RegisterUser(
+            success=False,
+            error="An account for that email address already exists.",
+        ))
+
+        self.assertEqual(
+            FeedbackGroupsUser.objects.filter(
+                user__username__iexact='graham@brightonandhovealbion.com',
             ).count(),
             1
         )

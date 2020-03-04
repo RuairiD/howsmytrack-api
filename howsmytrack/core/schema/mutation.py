@@ -2,6 +2,7 @@ import datetime
 
 import graphene
 import graphql_jwt
+from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
@@ -40,6 +41,39 @@ ONEDRIVE_FILE_PARTS = [
     'cid=',
     'id=',
 ]
+
+
+class ObtainJSONWebTokenCaseInsensitive(graphql_jwt.ObtainJSONWebToken):
+    """
+    Retain all functionality of graphql_jwt.ObtainJSONWebToken but check if
+    a user exists with the username in another case. If one exists, pass
+    through the correct username instead.
+
+    However, since some accounts were already created before this changed with
+    the same email in multiple cases, we're allowing those accounts to
+    persist by logging them in using the exact email address with exact casing.
+
+    e.g.
+        - if the user has the username 'davy@gmail.com', an attempt to log in
+          with 'DAVY@gmail.com' will be accepted.
+        - if the user has the username 'davy@gmail.com' and another has 'Davy@gmail.com',
+          an attempt to log in with 'DAVY@gmail.com' will be accepted for whichever
+          account was created first, while using the exact emails will guarantee
+          the exact account.
+    """
+    class Arguments:
+        pass
+
+    @classmethod
+    def mutate(cls, *args, **kwargs):
+        exact_user = User.objects.filter(username=kwargs['username']).first()
+        different_case_user = User.objects.filter(username__iexact=kwargs['username']).first()
+        if not exact_user and different_case_user:
+            kwargs['username'] = different_case_user.username
+        return super(ObtainJSONWebTokenCaseInsensitive, cls).mutate(
+            *args,
+            **kwargs,
+        )
 
 
 class RefreshTokenFromCookie(graphql_jwt.Refresh):
@@ -87,22 +121,24 @@ class RegisterUser(graphene.Mutation):
         except ValidationError:
             return RegisterUser(success=False, error="Please provide a valid email address.")
 
+        # Don't allow users to sign up with the same email in a different case.
+        existing_users = User.objects.filter(username__iexact=email).count()
+        if existing_users > 0:
+            return RegisterUser(success=False, error="An account for that email address already exists.")
+
         if password == password_repeat:
             try:
                 validate_password(password)
             except ValidationError as e:
                 return RegisterUser(success=False, error=INVALID_PASSWORD_MESSAGE)
 
-            try:
-                with transaction.atomic():
-                    user = FeedbackGroupsUser.create(
-                        email=email,
-                        password=password
-                    )
-                    user.save()
-                    return RegisterUser(success=bool(user.id))
-            except IntegrityError:
-                return RegisterUser(success=False, error="An account for that email address already exists.")
+            with transaction.atomic():
+                user = FeedbackGroupsUser.create(
+                    email=email,
+                    password=password
+                )
+                user.save()
+                return RegisterUser(success=bool(user.id))
         return RegisterUser(success=False, error="Passwords don't match.")
 
 
@@ -462,4 +498,6 @@ class Mutation(graphene.ObjectType):
     edit_feedback_request = EditFeedbackRequest.Field()
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
+
+    token_auth = ObtainJSONWebTokenCaseInsensitive.Field()
     refresh_token_from_cookie = RefreshTokenFromCookie.Field()
