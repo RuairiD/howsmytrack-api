@@ -46,6 +46,10 @@ class ObtainJSONWebTokenCaseInsensitiveTest(TestCase):
         )
         self.assertIsNotNone(result)
         self.assertIsNotNone(result.token)
+        self.assertEqual(
+            graphql_jwt.utils.jwt_decode(result.token).get('username'),
+            'graham@brightonandhovealbion.com',
+        )
 
     def test_different_case(self):
         info = Mock()
@@ -57,6 +61,10 @@ class ObtainJSONWebTokenCaseInsensitiveTest(TestCase):
         )
         self.assertIsNotNone(result)
         self.assertIsNotNone(result.token)
+        self.assertEqual(
+            graphql_jwt.utils.jwt_decode(result.token).get('username'),
+            'graham@brightonandhovealbion.com',
+        )
 
     def test_duplicates(self):
         """Since some accounts had already been created with the same email
