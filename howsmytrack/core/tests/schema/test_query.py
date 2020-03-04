@@ -211,7 +211,7 @@ class FeedbackGroupTest(TestCase):
                 genre=GenreChoice.ELECTRONIC.name,
             ),
             time_created=DEFAULT_DATETIME,
-            members=2,
+            members=1,
             trackless_members=0,
             feedback_responses=[
                 FeedbackResponseType(
@@ -274,7 +274,7 @@ class FeedbackGroupTest(TestCase):
                 genre=GenreChoice.ELECTRONIC.name,
             ),
             time_created=DEFAULT_DATETIME,
-            members=2,
+            members=1,
             trackless_members=0,
             feedback_responses=[
                 FeedbackResponseType(
@@ -326,7 +326,7 @@ class FeedbackGroupTest(TestCase):
             ),
             time_created=DEFAULT_DATETIME,
             members=1,
-            trackless_members=1,
+            trackless_members=0,
             feedback_responses=[
                 FeedbackResponseType(
                     id=1,
@@ -432,7 +432,7 @@ class FeedbackGroupsTest(TestCase):
                 genre=GenreChoice.ELECTRONIC.name,
             ),
             time_created=DEFAULT_DATETIME,
-            members=2,
+            members=1,
             trackless_members=0,
             feedback_responses=[
                 FeedbackResponseType(
