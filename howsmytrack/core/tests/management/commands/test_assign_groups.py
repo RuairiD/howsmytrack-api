@@ -91,7 +91,7 @@ class AssignGroupsTest(TestCase):
         self.assertEqual(len(mail.outbox), 4)
         for i in range(0, 4):
             email = mail.outbox[i]
-            self.assertEqual(email.subject, "how's my track? - your new feedback group")
+            self.assertEqual(email.subject, "your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i].email)
             self.assertTrue('https://www.howsmytrack.com/group/1' in email.body)
@@ -171,7 +171,7 @@ class AssignGroupsTest(TestCase):
         self.assertEqual(len(mail.outbox), 3)
         for i in range(0, 3):
             email = mail.outbox[i]
-            self.assertEqual(email.subject, "how's my track? - your new feedback group")
+            self.assertEqual(email.subject, "your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i + 1].email)
             self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)
@@ -234,7 +234,7 @@ class AssignGroupsTest(TestCase):
 
         for i in range(0, 4):
             email = mail.outbox[i]
-            self.assertEqual(email.subject, "how's my track? - your new feedback group")
+            self.assertEqual(email.subject, "your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             # Need to do some funny indexing because emails are sent in reverse order
             # i.e. lowest rated member of group has email sent first
@@ -243,7 +243,7 @@ class AssignGroupsTest(TestCase):
 
         for i in range(4, 7):
             email = mail.outbox[i]
-            self.assertEqual(email.subject, "how's my track? - your new feedback group")
+            self.assertEqual(email.subject, "your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[4 + 6 - i].email)
             self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)

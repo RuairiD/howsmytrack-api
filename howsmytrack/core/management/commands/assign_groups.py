@@ -82,7 +82,7 @@ class Command(BaseCommand):
             })
 
         send_mail(
-            subject="how's my track? - your new feedback group",
+            subject="your new feedback group",
             message=message,
             from_email=None, # Use default in settings.py
             recipient_list=[email],

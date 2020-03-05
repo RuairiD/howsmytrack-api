@@ -60,7 +60,7 @@ class Command(BaseCommand):
             })
 
         send_mail(
-            subject="how's my track? - don't forget your feedback group!",
+            subject="don't forget your feedback group!",
             message=message,
             from_email=None, # Use default in settings.py
             recipient_list=[feedback_request.user.email],

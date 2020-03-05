@@ -113,7 +113,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
 
 # Emails
-DEFAULT_FROM_EMAIL = 'noreply@howsmytrack.com'
+DEFAULT_FROM_EMAIL = "how's my track? <noreply@howsmytrack.com>"
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
     EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
