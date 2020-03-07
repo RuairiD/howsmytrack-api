@@ -1,6 +1,7 @@
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
+from django.db import transaction
 from django.template.loader import render_to_string
 
 from howsmytrack.core.models import GenreChoice
@@ -98,7 +99,7 @@ class Command(BaseCommand):
                     feedback_group_url=WEBSITE_URL.format(
                         path=f'/group/{feedback_group.id}'
                     ),
-                    is_trackless=False
+                    is_trackless=(feedback_request.media_url is None)
                 )
 
     def create_feedback_group(self, feedback_requests, genres):
@@ -131,9 +132,6 @@ class Command(BaseCommand):
                     )
                     feedback_response.save()
                     responses_count += 1
-
-        # Send every member of the group an email with a link to the newly created group
-        self.send_emails_for_group(feedback_group)
         
         self.stdout.write(
             f'Created {feedback_group.name} with {requests_count} requests and {responses_count} responses.',
@@ -197,7 +195,7 @@ class Command(BaseCommand):
         all_feedback_requests_and_genres[target_index] = (merged_feedback_requests, merged_genres)
         all_feedback_requests_and_genres.pop(source_index)
 
-    def handle(self, *args, **options):
+    def assign_groups(self):
         unassigned_feedback_requests = FeedbackRequest.objects.filter(
             feedback_group=None,
             media_url__isnull=False,
@@ -286,18 +284,23 @@ class Command(BaseCommand):
 
                     feedback_request.save()
 
-                    self.send_email_to_group_member(
-                        email=feedback_request.user.email,
-                        feedback_group_name=feedback_group.name,
-                        feedback_group_url=WEBSITE_URL.format(
-                            path=f'/group/{feedback_group.id}'
-                        ),
-                        is_trackless=True,
-                    )
-
                     unassigned_feedback_requests_without_tracks.remove(feedback_request)
                     feedback_group_index += 1
             feedback_group_index += 1
+        
+        return [
+            feedback_group
+            for feedback_group, genres in feedback_groups
+        ]
+
+    def handle(self, *args, **options):
+        feedback_groups = []
+        with transaction.atomic():
+            feedback_groups = self.assign_groups()
+
+        # Send every member of the group an email with a link to the newly created group
+        for feedback_group in feedback_groups:
+            self.send_emails_for_group(feedback_group)
 
 
 
