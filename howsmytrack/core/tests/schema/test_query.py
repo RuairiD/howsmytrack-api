@@ -10,10 +10,12 @@ from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackResponseReply
 from howsmytrack.core.models import MediaTypeChoice
 from howsmytrack.core.models import GenreChoice
 from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
+from howsmytrack.core.schema.types import FeedbackResponseReplyType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
 from howsmytrack.core.schema.types import MediaInfoType
@@ -227,6 +229,7 @@ class FeedbackGroupTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=True,
                     rating=4,
+                    replies=[],
                 )
             ],
             user_feedback_responses=[
@@ -243,6 +246,7 @@ class FeedbackGroupTest(TestCase):
                     feedback='lewisfeedback',
                     submitted=True,
                     rating=3,
+                    replies=[],
                 )
             ],
             user_feedback_response_count=1,
@@ -290,6 +294,7 @@ class FeedbackGroupTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=False,
                     rating=4,
+                    replies=[],
                 )
             ],
             user_feedback_responses=None,
@@ -341,10 +346,117 @@ class FeedbackGroupTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=True,
                     rating=4,
+                    replies=[],
                 )
             ],
             user_feedback_responses=[],
             user_feedback_response_count=0,
+        )
+        self.assertEqual(result, expected)
+
+    def test_logged_in_with_replies(self):
+        graham_reply_to_lewis = FeedbackResponseReply(
+            feedback_response=self.lewis_feedback_response,
+            user=self.graham_user,
+            text='love from graham',
+            allow_replies=False,
+        )
+        graham_reply_to_lewis.save()
+
+        lewis_reply_to_graham = FeedbackResponseReply(
+            feedback_response=self.graham_feedback_response,
+            user=self.lewis_user,
+            text='love from lewis',
+            allow_replies=True,
+        )
+        lewis_reply_to_graham.save()
+
+        graham_reply_to_graham = FeedbackResponseReply(
+            feedback_response=self.graham_feedback_response,
+            user=self.graham_user,
+            text="i don't want your love",
+            allow_replies=False,
+        )
+        graham_reply_to_graham.save()
+
+        info = Mock()
+        info.context = Mock()
+        info.context.user = self.graham_user.user
+        result = schema.get_query_type().graphene_type().resolve_feedback_group(
+            info=info,
+            feedback_group_id=self.feedback_group.id,
+        )
+        expected = FeedbackGroupType(
+            id=self.feedback_group.id,
+            name='name',
+            media_url='https://soundcloud.com/ruairidx/grey',
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
+            feedback_request=FeedbackRequestType(
+                id=1,
+                media_url='https://soundcloud.com/ruairidx/grey',
+                media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                feedback_prompt='feedback_prompt',
+                email_when_grouped=True,
+                genre=GenreChoice.ELECTRONIC.name,
+            ),
+            time_created=DEFAULT_DATETIME,
+            members=1,
+            trackless_members=0,
+            feedback_responses=[
+                FeedbackResponseType(
+                    id=1,
+                    feedback_request=FeedbackRequestType(
+                        id=2,
+                        media_url='https://soundcloud.com/ruairidx/bruno',
+                        media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                        feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
+                        genre=GenreChoice.HIPHOP.name,
+                    ),
+                    feedback='grahamfeedback',
+                    submitted=True,
+                    rating=4,
+                    replies=[
+                        FeedbackResponseReplyType(
+                            username='Them',
+                            text='love from lewis',
+                            allow_replies=True,
+                            time_created=lewis_reply_to_graham.time_created,
+                        ),
+                        FeedbackResponseReplyType(
+                            username='You',
+                            text="i don't want your love",
+                            allow_replies=False,
+                            time_created=graham_reply_to_graham.time_created,
+                        ),
+                    ],
+                )
+            ],
+            user_feedback_responses=[
+                FeedbackResponseType(
+                    id=2,
+                    feedback_request=FeedbackRequestType(
+                        id=1,
+                        media_url='https://soundcloud.com/ruairidx/grey',
+                        media_type=MediaTypeChoice.SOUNDCLOUD.name,
+                        feedback_prompt='feedback_prompt',
+                        email_when_grouped=True,
+                        genre=GenreChoice.ELECTRONIC.name,
+                    ),
+                    feedback='lewisfeedback',
+                    submitted=True,
+                    rating=3,
+                    replies=[
+                        FeedbackResponseReplyType(
+                            username='You',
+                            text='love from graham',
+                            allow_replies=False,
+                            time_created=graham_reply_to_lewis.time_created,
+                        ),
+                    ],
+                )
+            ],
+            user_feedback_response_count=1,
         )
         self.assertEqual(result, expected)
 
@@ -448,6 +560,7 @@ class FeedbackGroupsTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=True,
                     rating=4,
+                    replies=[],
                 )
             ],
             user_feedback_responses=[
@@ -464,6 +577,7 @@ class FeedbackGroupsTest(TestCase):
                     feedback='lewisfeedback',
                     submitted=True,
                     rating=3,
+                    replies=[],
                 )
             ],
             user_feedback_response_count=1,

@@ -17,6 +17,7 @@ from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackResponseReply
 from howsmytrack.core.models import MediaTypeChoice
 
 
@@ -491,6 +492,66 @@ class RateFeedbackResponse(graphene.Mutation):
         return RateFeedbackResponse(success=True, error=None)
 
 
+class AddFeedbackResponseReply(graphene.Mutation):
+
+    class Arguments:
+        feedback_response_id = graphene.Int(required=True)
+        text = graphene.String(required=True)
+        allow_replies = graphene.Boolean(required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
+    def mutate(self, info, feedback_response_id, text, allow_replies):
+        user = info.context.user
+        if user.is_anonymous:
+            return AddFeedbackResponseReply(success=False, error='Not logged in.')
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+        
+        feedback_response = FeedbackResponse.objects.filter(
+            id=feedback_response_id,
+        ).first()
+
+        if not feedback_response:
+            return AddFeedbackResponseReply(success=False, error='Invalid feedback_response_id')
+
+        # Only allow the FeedbackRequest user or FeedbackResponseUser to reply.
+        if not feedback_response.user == feedback_groups_user and  not feedback_response.feedback_request.user == feedback_groups_user:
+            return AddFeedbackResponseReply(success=False, error='You are not authorised to reply to this feedback.')
+
+        # The client should prevent users from replying to unsubmitted feedback, obviously,
+        # but we should protect against it here anyway.
+        if not feedback_response.allow_replies or not feedback_response.submitted:
+            return AddFeedbackResponseReply(success=False, error='You cannot reply to this feedback.')
+
+        # If there are other replies and one of them opted to end the conversation, don't allow a new reply.
+        existing_reply_has_disallowed_replies = FeedbackResponseReply.objects.filter(
+            feedback_response=feedback_response,
+            allow_replies=False,
+        ).count() > 0
+        if existing_reply_has_disallowed_replies:
+            return AddFeedbackResponseReply(success=False, error='You cannot reply to this feedback.')
+
+        reply = FeedbackResponseReply(
+            feedback_response=feedback_response,
+            user=feedback_groups_user,
+            text=text,
+            allow_replies=allow_replies,
+        )
+        reply.save()
+
+        return AddFeedbackResponseReply(success=True, error=None)
+
+
 class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
     create_feedback_request = CreateFeedbackRequest.Field()
@@ -498,6 +559,7 @@ class Mutation(graphene.ObjectType):
     edit_feedback_request = EditFeedbackRequest.Field()
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
+    add_feedback_response_reply = AddFeedbackResponseReply.Field()
 
     token_auth = ObtainJSONWebTokenCaseInsensitive.Field()
     refresh_token_from_cookie = RefreshTokenFromCookie.Field()

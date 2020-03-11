@@ -151,6 +151,7 @@ class FeedbackResponse(models.Model):
         blank=True,
         null=True,
     )
+    allow_replies = models.BooleanField(default=False)
     time_submitted = models.DateTimeField(
         blank=True,
         null=True,
@@ -165,9 +166,43 @@ class FeedbackResponse(models.Model):
         ]
     )
 
+    @property
+    def ordered_replies(self):
+        return self.replies.order_by(
+            'time_created'
+        ).all()
+
     def __str__(self):
         return f'{self.user} responded: "{self.feedback}" to {self.feedback_request}'
 
     class Meta:
         verbose_name = 'FeedbackResponse'
         verbose_name_plural = 'FeedbackResponses'
+
+
+class FeedbackResponseReply(models.Model):
+    """
+    A reply to a FeedbackResponse.
+    
+    TODO: write more here please
+    """
+    feedback_response = models.ForeignKey(
+        FeedbackResponse,
+        related_name='replies',
+        on_delete=models.CASCADE,
+    )
+    user = models.ForeignKey(
+        FeedbackGroupsUser,
+        related_name='replies',
+        on_delete=models.CASCADE
+    )
+    text = models.TextField()
+    allow_replies = models.BooleanField(default=True)
+    time_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user} replied: "{self.text}"'
+
+    class Meta:
+        verbose_name = 'FeedbackResponseReply'
+        verbose_name_plural = 'FeedbackResponseReplies'
