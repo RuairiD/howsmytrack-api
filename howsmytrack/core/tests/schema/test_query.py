@@ -51,7 +51,7 @@ class UserDetailsTest(TestCase):
         self.assertEqual(result, UserType(
             username='graham@brightonandhovealbion.com',
             rating=4.5,
-            incomplete_responses=0,
+            notifications=0,
         ))
 
     def test_user_details_logged_in_incomplete_response(self):
@@ -90,7 +90,55 @@ class UserDetailsTest(TestCase):
         self.assertEqual(result, UserType(
             username='graham@brightonandhovealbion.com',
             rating=4.5,
-            incomplete_responses=1,
+            notifications=1,
+        ))
+
+    def test_user_details_logged_in_unread_reply(self):
+        other_user = FeedbackGroupsUser.create(
+            email='lewis@brightonandhovealbion.com',
+            password='password',
+        )
+        other_user.save()
+
+        feedback_group = FeedbackGroup(name='name')
+        feedback_group.save()
+
+        feedback_request = FeedbackRequest(
+            user=other_user,
+            media_url='https://soundcloud.com/ruairidx/grey',
+            media_type=MediaTypeChoice.SOUNDCLOUD.name,
+            feedback_prompt='feedback_prompt',
+            feedback_group=feedback_group,
+            email_when_grouped=True,
+            genre=GenreChoice.NO_GENRE,
+        )
+        feedback_request.save()
+        
+        feedback_response = FeedbackResponse(
+            feedback_request=feedback_request,
+            user=self.user,
+            feedback='feedback',
+            submitted=True,
+        )
+        feedback_response.save()
+
+        feedback_response_reply = FeedbackResponseReply(
+            feedback_response=feedback_response,
+            user=other_user,
+            text='some reply',
+        )
+        feedback_response_reply.save()
+
+        info = Mock()
+        info.context = Mock()
+        info.context.user = self.user.user
+        result = schema.get_query_type().graphene_type().resolve_user_details(
+            info=info,
+        )
+        self.assertEqual(result, UserType(
+            username='graham@brightonandhovealbion.com',
+            rating=4.5,
+            notifications=1,
         ))
 
 
@@ -234,6 +282,7 @@ class FeedbackGroupTest(TestCase):
                     allow_replies=False,
                     allow_further_replies=False,
                     replies=[],
+                    unread_replies=0,
                 )
             ],
             user_feedback_responses=[
@@ -253,6 +302,7 @@ class FeedbackGroupTest(TestCase):
                     allow_replies=False,
                     allow_further_replies=False,
                     replies=[],
+                    unread_replies=0,
                 )
             ],
             user_feedback_response_count=1,
@@ -303,6 +353,7 @@ class FeedbackGroupTest(TestCase):
                     allow_replies=False,
                     allow_further_replies=False,
                     replies=[],
+                    unread_replies=0,
                 )
             ],
             user_feedback_responses=None,
@@ -357,6 +408,7 @@ class FeedbackGroupTest(TestCase):
                     allow_replies=False,
                     allow_further_replies=False,
                     replies=[],
+                    unread_replies=0,
                 )
             ],
             user_feedback_responses=[],
@@ -435,18 +487,21 @@ class FeedbackGroupTest(TestCase):
                     allow_further_replies=False,
                     replies=[
                         FeedbackResponseReplyType(
+                            id=2,
                             username='Them',
                             text='love from lewis',
                             allow_replies=True,
                             time_created=lewis_reply_to_graham.time_created,
                         ),
                         FeedbackResponseReplyType(
+                            id=3,
                             username='You',
                             text="i don't want your love",
                             allow_replies=False,
                             time_created=graham_reply_to_graham.time_created,
                         ),
                     ],
+                    unread_replies=1,
                 )
             ],
             user_feedback_responses=[
@@ -467,12 +522,14 @@ class FeedbackGroupTest(TestCase):
                     allow_further_replies=False,
                     replies=[
                         FeedbackResponseReplyType(
+                            id=1,
                             username='You',
                             text='love from graham',
                             allow_replies=False,
                             time_created=graham_reply_to_lewis.time_created,
                         ),
                     ],
+                    unread_replies=0,
                 )
             ],
             user_feedback_response_count=1,
@@ -584,6 +641,7 @@ class FeedbackGroupsTest(TestCase):
                     allow_replies=False,
                     allow_further_replies=False,
                     replies=[],
+                    unread_replies=0,
                 )
             ],
             user_feedback_responses=[
@@ -603,6 +661,7 @@ class FeedbackGroupsTest(TestCase):
                     allow_replies=True,
                     allow_further_replies=True,
                     replies=[],
+                    unread_replies=0,
                 )
             ],
             user_feedback_response_count=1,

@@ -32,6 +32,7 @@ class FeedbackRequestType(graphene.ObjectType):
 
 
 class FeedbackResponseReplyType(graphene.ObjectType):
+    id = graphene.Int()
     # A simplified user identifier i.e. "You" or "Them"
     username = graphene.String()
     text = graphene.String()
@@ -45,6 +46,7 @@ class FeedbackResponseReplyType(graphene.ObjectType):
             username = 'You'
 
         return cls(
+            id=model.id,
             username=username,
             text=model.text,
             allow_replies=model.allow_replies,
@@ -53,6 +55,7 @@ class FeedbackResponseReplyType(graphene.ObjectType):
 
     def __eq__(self, other):
         return all([
+            self.id == other.id,
             self.username == other.username,
             self.text == other.text,
             self.allow_replies == other.allow_replies,
@@ -73,6 +76,7 @@ class FeedbackResponseType(graphene.ObjectType):
     # writing additional replies.
     allow_further_replies = graphene.Boolean()
     replies = graphene.List(FeedbackResponseReplyType)
+    unread_replies = graphene.Int()
 
     @classmethod
     def from_model(cls, model, feedback_groups_user):
@@ -88,6 +92,11 @@ class FeedbackResponseType(graphene.ObjectType):
                 FeedbackResponseReplyType.from_model(reply, feedback_groups_user)
                 for reply in model.ordered_replies
             ],
+            unread_replies=model.replies.exclude(
+                user=feedback_groups_user,
+            ).filter(
+                time_read__isnull=True
+            ).count(),
         )
 
     def __eq__(self, other):
@@ -100,19 +109,20 @@ class FeedbackResponseType(graphene.ObjectType):
             self.allow_replies == other.allow_replies,
             self.allow_further_replies == other.allow_further_replies,
             self.replies == other.replies,
+            self.unread_replies == other.unread_replies,
         ])
 
 
 class UserType(graphene.ObjectType):
     username = graphene.String()
     rating = graphene.Float()
-    incomplete_responses = graphene.Int()
+    notifications = graphene.Int()
 
     def __eq__(self, other):
         return all([
             self.username == other.username,
             self.rating == other.rating,
-            self.incomplete_responses == other.incomplete_responses,
+            self.notifications == other.notifications,
         ])
 
 

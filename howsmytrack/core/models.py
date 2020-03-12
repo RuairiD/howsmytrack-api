@@ -213,8 +213,10 @@ class FeedbackResponseReply(models.Model):
     text = models.TextField()
     allow_replies = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
-    # TODO added a `time_read` field to allow users to distinguish between
-    # read and unread replies.
+    time_read = models.DateTimeField(
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f'{self.user} replied: "{truncate_string(self.text)}"'

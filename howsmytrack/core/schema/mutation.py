@@ -7,8 +7,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.core.validators import URLValidator
-from django.db import IntegrityError
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from graphene_django.types import DjangoObjectType
@@ -547,6 +547,45 @@ class AddFeedbackResponseReply(graphene.Mutation):
         return AddFeedbackResponseReply(success=True, error=None)
 
 
+class MarkRepliesAsRead(graphene.Mutation):
+
+    class Arguments:
+        reply_ids = graphene.List(graphene.Int, required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
+    def mutate(self, info, reply_ids):
+        user = info.context.user
+        if user.is_anonymous:
+            return MarkRepliesAsRead(success=False, error='Not logged in.')
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+        
+        unread_replies = FeedbackResponseReply.objects.exclude(
+            user=feedback_groups_user,
+        ).filter(
+            id__in=reply_ids,
+            time_read__isnull=True,
+        ).filter(
+            Q(feedback_response__user=feedback_groups_user) | Q(feedback_response__feedback_request__user=feedback_groups_user),
+        ).all()
+
+        for reply in unread_replies:
+            reply.time_read = timezone.now()
+            reply.save()
+
+        return MarkRepliesAsRead(success=True, error=None)
+
+
 class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
     create_feedback_request = CreateFeedbackRequest.Field()
@@ -555,6 +594,7 @@ class Mutation(graphene.ObjectType):
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
     add_feedback_response_reply = AddFeedbackResponseReply.Field()
+    mark_replies_as_read = MarkRepliesAsRead.Field()
 
     token_auth = ObtainJSONWebTokenCaseInsensitive.Field()
     refresh_token_from_cookie = RefreshTokenFromCookie.Field()
