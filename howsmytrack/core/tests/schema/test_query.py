@@ -162,6 +162,7 @@ class FeedbackGroupTest(TestCase):
             feedback='grahamfeedback',
             submitted=True,
             rating=4,
+            allow_replies=False,
         )
         self.lewis_feedback_response = FeedbackResponse(
             feedback_request=self.graham_feedback_request,
@@ -169,6 +170,7 @@ class FeedbackGroupTest(TestCase):
             feedback='lewisfeedback',
             submitted=True,
             rating=3,
+            allow_replies=False,
         )
         self.graham_feedback_response.save()
         self.lewis_feedback_response.save()
@@ -229,6 +231,8 @@ class FeedbackGroupTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=True,
                     rating=4,
+                    allow_replies=False,
+                    allow_further_replies=False,
                     replies=[],
                 )
             ],
@@ -246,6 +250,8 @@ class FeedbackGroupTest(TestCase):
                     feedback='lewisfeedback',
                     submitted=True,
                     rating=3,
+                    allow_replies=False,
+                    allow_further_replies=False,
                     replies=[],
                 )
             ],
@@ -294,6 +300,8 @@ class FeedbackGroupTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=False,
                     rating=4,
+                    allow_replies=False,
+                    allow_further_replies=False,
                     replies=[],
                 )
             ],
@@ -346,6 +354,8 @@ class FeedbackGroupTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=True,
                     rating=4,
+                    allow_replies=False,
+                    allow_further_replies=False,
                     replies=[],
                 )
             ],
@@ -355,6 +365,11 @@ class FeedbackGroupTest(TestCase):
         self.assertEqual(result, expected)
 
     def test_logged_in_with_replies(self):
+        self.lewis_feedback_response.allow_replies = True
+        self.lewis_feedback_response.save()
+        self.graham_feedback_response.allow_replies = True
+        self.graham_feedback_response.save()
+
         graham_reply_to_lewis = FeedbackResponseReply(
             feedback_response=self.lewis_feedback_response,
             user=self.graham_user,
@@ -416,6 +431,8 @@ class FeedbackGroupTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=True,
                     rating=4,
+                    allow_replies=True,
+                    allow_further_replies=False,
                     replies=[
                         FeedbackResponseReplyType(
                             username='Them',
@@ -446,6 +463,8 @@ class FeedbackGroupTest(TestCase):
                     feedback='lewisfeedback',
                     submitted=True,
                     rating=3,
+                    allow_replies=True,
+                    allow_further_replies=False,
                     replies=[
                         FeedbackResponseReplyType(
                             username='You',
@@ -505,6 +524,7 @@ class FeedbackGroupsTest(TestCase):
             feedback='grahamfeedback',
             submitted=True,
             rating=4,
+            allow_replies=False,
         )
         self.lewis_feedback_response = FeedbackResponse(
             feedback_request=self.graham_feedback_request,
@@ -512,6 +532,7 @@ class FeedbackGroupsTest(TestCase):
             feedback='lewisfeedback',
             submitted=True,
             rating=3,
+            allow_replies=True,
         )
         self.graham_feedback_response.save()
         self.lewis_feedback_response.save()
@@ -560,6 +581,8 @@ class FeedbackGroupsTest(TestCase):
                     feedback='grahamfeedback',
                     submitted=True,
                     rating=4,
+                    allow_replies=False,
+                    allow_further_replies=False,
                     replies=[],
                 )
             ],
@@ -577,6 +600,8 @@ class FeedbackGroupsTest(TestCase):
                     feedback='lewisfeedback',
                     submitted=True,
                     rating=3,
+                    allow_replies=True,
+                    allow_further_replies=True,
                     replies=[],
                 )
             ],

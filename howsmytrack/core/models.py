@@ -6,6 +6,13 @@ from django.core.validators import MaxValueValidator
 from django.core.validators import MinValueValidator
 
 
+MAX_DISPLAY_STRING_LENGTH = 50
+def truncate_string(string, length=MAX_DISPLAY_STRING_LENGTH):
+    if len(string) > length:
+        return string[:length] + '…'
+    return string
+
+
 class FeedbackGroupsUser(models.Model):
     """
     Composition of basic User class to include ratings.
@@ -118,7 +125,7 @@ class FeedbackRequest(models.Model):
     reminder_email_sent = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.user}\'s request for {self.media_url} ({self.time_created})'
+        return f'{self.user}\'s request for {truncate_string(self.media_url)} ({self.time_created})'
 
     class Meta:
         verbose_name = 'FeedbackRequest'
@@ -172,8 +179,15 @@ class FeedbackResponse(models.Model):
             'time_created'
         ).all()
 
+    @property
+    def allow_further_replies(self):
+        return FeedbackResponseReply.objects.filter(
+            feedback_response=self,
+            allow_replies=False,
+        ).count() == 0
+
     def __str__(self):
-        return f'{self.user} responded: "{self.feedback}" to {self.feedback_request}'
+        return f'{self.user} responded: "{truncate_string(self.feedback)}" to {self.feedback_request}'
 
     class Meta:
         verbose_name = 'FeedbackResponse'
@@ -199,9 +213,11 @@ class FeedbackResponseReply(models.Model):
     text = models.TextField()
     allow_replies = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
+    # TODO added a `time_read` field to allow users to distinguish between
+    # read and unread replies.
 
     def __str__(self):
-        return f'{self.user} replied: "{self.text}"'
+        return f'{self.user} replied: "{truncate_string(self.text)}"'
 
     class Meta:
         verbose_name = 'FeedbackResponseReply'

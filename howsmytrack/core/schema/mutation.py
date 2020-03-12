@@ -530,15 +530,8 @@ class AddFeedbackResponseReply(graphene.Mutation):
 
         # The client should prevent users from replying to unsubmitted feedback, obviously,
         # but we should protect against it here anyway.
-        if not feedback_response.allow_replies or not feedback_response.submitted:
-            return AddFeedbackResponseReply(success=False, error='You cannot reply to this feedback.')
-
         # If there are other replies and one of them opted to end the conversation, don't allow a new reply.
-        existing_reply_has_disallowed_replies = FeedbackResponseReply.objects.filter(
-            feedback_response=feedback_response,
-            allow_replies=False,
-        ).count() > 0
-        if existing_reply_has_disallowed_replies:
+        if not feedback_response.allow_replies or not feedback_response.submitted or not feedback_response.allow_further_replies:
             return AddFeedbackResponseReply(success=False, error='You cannot reply to this feedback.')
 
         reply = FeedbackResponseReply(
