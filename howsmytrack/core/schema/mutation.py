@@ -407,6 +407,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
     class Arguments:
         feedback_response_id = graphene.Int(required=True)
         feedback = graphene.String(required=True)
+        allow_replies = graphene.Boolean(required=True)
 
     success = graphene.Boolean()
     error = graphene.String()
@@ -417,7 +418,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
             self.error == other.error,
         ])
 
-    def mutate(self, info, feedback_response_id, feedback):
+    def mutate(self, info, feedback_response_id, feedback, allow_replies):
         user = info.context.user
         if user.is_anonymous:
             return SubmitFeedbackResponse(success=False, error='Not logged in.')
@@ -440,6 +441,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
         feedback_response.feedback = feedback
         feedback_response.time_submitted = timezone.now()
         feedback_response.submitted = True
+        feedback_response.allow_replies = allow_replies
         feedback_response.save()
 
         return SubmitFeedbackResponse(success=True, error=None)

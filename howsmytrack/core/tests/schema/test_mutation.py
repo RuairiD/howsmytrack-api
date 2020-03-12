@@ -974,6 +974,7 @@ class SubmitFeedbackResponseTest(TestCase):
             info=info,
             feedback_response_id=self.feedback_response.id,
             feedback='feedback',
+            allow_replies=True,
         )
 
         self.assertEqual(result, SubmitFeedbackResponse(
@@ -1000,6 +1001,7 @@ class SubmitFeedbackResponseTest(TestCase):
             info=info,
             feedback_response_id=1901,
             feedback='feedback',
+            allow_replies=True,
         )
 
         self.assertEqual(result, SubmitFeedbackResponse(
@@ -1029,6 +1031,7 @@ class SubmitFeedbackResponseTest(TestCase):
             info=info,
             feedback_response_id=self.feedback_response.id,
             feedback='feedback',
+            allow_replies=True,
         )
 
         self.assertEqual(result, SubmitFeedbackResponse(
@@ -1055,6 +1058,7 @@ class SubmitFeedbackResponseTest(TestCase):
             info=info,
             feedback_response_id=self.feedback_response.id,
             feedback='feedback',
+            allow_replies=True,
         )
 
         self.assertEqual(result, SubmitFeedbackResponse(
@@ -1068,6 +1072,7 @@ class SubmitFeedbackResponseTest(TestCase):
                 feedback_request=self.feedback_request,
                 feedback='feedback',
                 submitted=True,
+                allow_replies=True,
             ).count(),
             1,
         )
