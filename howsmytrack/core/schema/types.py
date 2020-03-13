@@ -31,21 +31,72 @@ class FeedbackRequestType(graphene.ObjectType):
         ])
 
 
+class FeedbackResponseReplyType(graphene.ObjectType):
+    id = graphene.Int()
+    # A simplified user identifier i.e. "You" or "Them"
+    username = graphene.String()
+    text = graphene.String()
+    allow_replies = graphene.Boolean()
+    time_created = graphene.types.datetime.DateTime()
+
+    @classmethod
+    def from_model(cls, model, feedback_groups_user):
+        username = 'Them'
+        if feedback_groups_user == model.user:
+            username = 'You'
+
+        return cls(
+            id=model.id,
+            username=username,
+            text=model.text,
+            allow_replies=model.allow_replies,
+            time_created=model.time_created,
+        )
+
+    def __eq__(self, other):
+        return all([
+            self.id == other.id,
+            self.username == other.username,
+            self.text == other.text,
+            self.allow_replies == other.allow_replies,
+            self.time_created == other.time_created,
+        ])
+
+
 class FeedbackResponseType(graphene.ObjectType):
     id = graphene.Int()
     feedback_request = graphene.Field(FeedbackRequestType)
     feedback = graphene.String()
     submitted = graphene.Boolean()
     rating = graphene.Int()
+    # Whether or not the original feedback author allowed the other
+    # user to reply to this feedback.
+    allow_replies = graphene.Boolean()
+    # Whether or not either of the users has chosen to disable 
+    # writing additional replies.
+    allow_further_replies = graphene.Boolean()
+    replies = graphene.List(FeedbackResponseReplyType)
+    unread_replies = graphene.Int()
 
     @classmethod
-    def from_model(cls, model):
+    def from_model(cls, model, feedback_groups_user):
         return cls(
             id=model.id,
             feedback_request=FeedbackRequestType.from_model(model.feedback_request),
             feedback=model.feedback,
             submitted=model.submitted,
             rating=model.rating,
+            allow_replies=model.allow_replies,
+            allow_further_replies=model.allow_replies and model.allow_further_replies,
+            replies=[
+                FeedbackResponseReplyType.from_model(reply, feedback_groups_user)
+                for reply in model.ordered_replies
+            ],
+            unread_replies=model.replies.exclude(
+                user=feedback_groups_user,
+            ).filter(
+                time_read__isnull=True
+            ).count(),
         )
 
     def __eq__(self, other):
@@ -55,19 +106,23 @@ class FeedbackResponseType(graphene.ObjectType):
             self.feedback == other.feedback,
             self.submitted == other.submitted,
             self.rating == other.rating,
+            self.allow_replies == other.allow_replies,
+            self.allow_further_replies == other.allow_further_replies,
+            self.replies == other.replies,
+            self.unread_replies == other.unread_replies,
         ])
 
 
 class UserType(graphene.ObjectType):
     username = graphene.String()
     rating = graphene.Float()
-    incomplete_responses = graphene.Int()
+    notifications = graphene.Int()
 
     def __eq__(self, other):
         return all([
             self.username == other.username,
             self.rating == other.rating,
-            self.incomplete_responses == other.incomplete_responses,
+            self.notifications == other.notifications,
         ])
 
 
@@ -123,7 +178,7 @@ class FeedbackGroupType(graphene.ObjectType):
             for feedback_response in feedback_request.feedback_responses.all():
                 if feedback_response.user == feedback_groups_user:
                     feedback_responses.append(
-                        FeedbackResponseType.from_model(feedback_response)
+                        FeedbackResponseType.from_model(feedback_response, feedback_groups_user)
                     )
 
         # If user has responded to all requests, find user's request and get responses
@@ -134,7 +189,7 @@ class FeedbackGroupType(graphene.ObjectType):
         if all([feedback_response.submitted for feedback_response in feedback_responses]):
             # Only returned submitted responses
             user_feedback_responses = [
-                FeedbackResponseType.from_model(feedback_response)
+                FeedbackResponseType.from_model(feedback_response, feedback_groups_user)
                 for feedback_response in submitted_responses_for_user
             ]
 

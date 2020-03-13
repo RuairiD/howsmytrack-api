@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.core.validators import URLValidator
 from django.db import IntegrityError
+from django.db.models import Q
 from django.utils import timezone
 
 from graphene_django.types import DjangoObjectType
@@ -14,6 +15,7 @@ from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackResponseReply
 from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import UserType
@@ -59,10 +61,20 @@ class Query(graphene.ObjectType):
             submitted=False,
         ).count()
 
+        # Find number of replies *not* sent by the user but involving a response
+        # for the user's request or that the user has written feedback for.
+        unread_replies = FeedbackResponseReply.objects.exclude(
+            user=feedback_groups_user,
+        ).filter(
+            time_read__isnull=True,
+        ).filter(
+            Q(feedback_response__user=feedback_groups_user) | Q(feedback_response__feedback_request__user=feedback_groups_user),
+        ).count()
+
         return UserType(
             username=user.username,
             rating=rating,
-            incomplete_responses=incomplete_responses,
+            notifications=incomplete_responses + unread_replies,
         )
 
     def resolve_media_info(self, info, media_url):

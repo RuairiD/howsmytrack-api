@@ -7,8 +7,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.core.validators import URLValidator
-from django.db import IntegrityError
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from graphene_django.types import DjangoObjectType
@@ -17,6 +17,7 @@ from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
+from howsmytrack.core.models import FeedbackResponseReply
 from howsmytrack.core.models import MediaTypeChoice
 
 
@@ -406,6 +407,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
     class Arguments:
         feedback_response_id = graphene.Int(required=True)
         feedback = graphene.String(required=True)
+        allow_replies = graphene.Boolean(required=True)
 
     success = graphene.Boolean()
     error = graphene.String()
@@ -416,7 +418,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
             self.error == other.error,
         ])
 
-    def mutate(self, info, feedback_response_id, feedback):
+    def mutate(self, info, feedback_response_id, feedback, allow_replies):
         user = info.context.user
         if user.is_anonymous:
             return SubmitFeedbackResponse(success=False, error='Not logged in.')
@@ -439,6 +441,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
         feedback_response.feedback = feedback
         feedback_response.time_submitted = timezone.now()
         feedback_response.submitted = True
+        feedback_response.allow_replies = allow_replies
         feedback_response.save()
 
         return SubmitFeedbackResponse(success=True, error=None)
@@ -491,6 +494,98 @@ class RateFeedbackResponse(graphene.Mutation):
         return RateFeedbackResponse(success=True, error=None)
 
 
+class AddFeedbackResponseReply(graphene.Mutation):
+
+    class Arguments:
+        feedback_response_id = graphene.Int(required=True)
+        text = graphene.String(required=True)
+        allow_replies = graphene.Boolean(required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
+    def mutate(self, info, feedback_response_id, text, allow_replies):
+        user = info.context.user
+        if user.is_anonymous:
+            return AddFeedbackResponseReply(success=False, error='Not logged in.')
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+        
+        feedback_response = FeedbackResponse.objects.filter(
+            id=feedback_response_id,
+        ).first()
+
+        if not feedback_response:
+            return AddFeedbackResponseReply(success=False, error='Invalid feedback_response_id')
+
+        # Only allow the FeedbackRequest user or FeedbackResponseUser to reply.
+        if not feedback_response.user == feedback_groups_user and  not feedback_response.feedback_request.user == feedback_groups_user:
+            return AddFeedbackResponseReply(success=False, error='You are not authorised to reply to this feedback.')
+
+        # The client should prevent users from replying to unsubmitted feedback, obviously,
+        # but we should protect against it here anyway.
+        # If there are other replies and one of them opted to end the conversation, don't allow a new reply.
+        if not feedback_response.allow_replies or not feedback_response.submitted or not feedback_response.allow_further_replies:
+            return AddFeedbackResponseReply(success=False, error='You cannot reply to this feedback.')
+
+        reply = FeedbackResponseReply(
+            feedback_response=feedback_response,
+            user=feedback_groups_user,
+            text=text,
+            allow_replies=allow_replies,
+        )
+        reply.save()
+
+        return AddFeedbackResponseReply(success=True, error=None)
+
+
+class MarkRepliesAsRead(graphene.Mutation):
+
+    class Arguments:
+        reply_ids = graphene.List(graphene.Int, required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
+    def mutate(self, info, reply_ids):
+        user = info.context.user
+        if user.is_anonymous:
+            return MarkRepliesAsRead(success=False, error='Not logged in.')
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+        
+        unread_replies = FeedbackResponseReply.objects.exclude(
+            user=feedback_groups_user,
+        ).filter(
+            id__in=reply_ids,
+            time_read__isnull=True,
+        ).filter(
+            Q(feedback_response__user=feedback_groups_user) | Q(feedback_response__feedback_request__user=feedback_groups_user),
+        ).all()
+
+        for reply in unread_replies:
+            reply.time_read = timezone.now()
+            reply.save()
+
+        return MarkRepliesAsRead(success=True, error=None)
+
+
 class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
     create_feedback_request = CreateFeedbackRequest.Field()
@@ -498,6 +593,8 @@ class Mutation(graphene.ObjectType):
     edit_feedback_request = EditFeedbackRequest.Field()
     submit_feedback_response = SubmitFeedbackResponse.Field()
     rate_feedback_response = RateFeedbackResponse.Field()
+    add_feedback_response_reply = AddFeedbackResponseReply.Field()
+    mark_replies_as_read = MarkRepliesAsRead.Field()
 
     token_auth = ObtainJSONWebTokenCaseInsensitive.Field()
     refresh_token_from_cookie = RefreshTokenFromCookie.Field()
