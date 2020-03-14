@@ -71,6 +71,10 @@ class MediaTypeChoice(Enum):
 class GenreChoice(Enum):
     ELECTRONIC = 'Electronic'
     HIPHOP = 'Hip-Hop/Rap'
+    JAZZ = 'Jazz'
+    URBAN_RNB = 'Urban/R&B'
+    POP = 'Pop'
+    ROCK_METAL_PUNK = 'Rock/Metal/Punk'
     NO_GENRE = 'No Genre'
 
 
@@ -198,7 +202,9 @@ class FeedbackResponseReply(models.Model):
     """
     A reply to a FeedbackResponse.
     
-    TODO: write more here please
+    Replies can be left if the corresponding FeedbackResponse has
+    allow_replies=True. `user` can either be the user who originally
+    submitted the request or the user who responded to it.
     """
     feedback_response = models.ForeignKey(
         FeedbackResponse,

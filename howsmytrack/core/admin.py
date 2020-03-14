@@ -47,6 +47,7 @@ class FeedbackResponseAdmin(admin.ModelAdmin):
         'feedback',
         'submitted',
         'rating',
+        'allow_replies',
     )
     search_fields = ['user__user__username']
     raw_id_fields = ['feedback_request', 'user']
