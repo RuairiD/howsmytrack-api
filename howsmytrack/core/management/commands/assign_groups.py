@@ -205,7 +205,7 @@ class Command(BaseCommand):
 
         if unassigned_feedback_requests.count() == 1:
             # Not enough requests to make a group. Try again another time :(
-            return
+            return []
 
         all_feedback_requests_and_genres = self.separate_feedback_requests_by_genres(
             unassigned_feedback_requests
@@ -253,45 +253,64 @@ class Command(BaseCommand):
 
         # Prioritise groups with < 4 requests to make sure everyone gets as many
         # feedback responses as possible.
-        feedback_groups = sorted(
-            feedback_groups,
-            key=lambda feedback_group_tuple: (
-                feedback_group_tuple[0].feedback_requests.count(),
+        for feedback_request in unassigned_feedback_requests_without_tracks:
+            eligible_groups = sorted(
+                [
+                    feedback_group_tuple
+                    for feedback_group_tuple in feedback_groups
+                    if GenreChoice[feedback_request.genre] in feedback_group_tuple[1]
+                ],
+                key=lambda feedback_group_tuple: (
+                    feedback_group_tuple[0].feedback_requests.count(),
+                )
             )
-        )
+            if eligible_groups:
+                feedback_group, genres = eligible_groups[0]
+                self.add_request_to_group(feedback_request, feedback_group)
 
-        feedback_group_index = 0
-        while len(unassigned_feedback_requests_without_tracks) > 0:
-            for feedback_request in unassigned_feedback_requests_without_tracks:
-                if feedback_group_index >= len(feedback_groups):
-                    feedback_group_index = 0
-                feedback_group, genres = feedback_groups[feedback_group_index]
-                if GenreChoice[feedback_request.genre] in genres:
-                    feedback_request.feedback_group = feedback_group
+                feedback_group.refresh_from_db()
 
-                    # Add response forms for the other requests in the group that aren't trackless.
-                    other_feedback_requests_with_tracks = feedback_group.feedback_requests.filter(
-                        media_url__isnull=False,
-                    ).exclude(
-                        id=feedback_request.id,
-                    ).all()
-                    for other_feedback_request in other_feedback_requests_with_tracks:
-                        feedback_response = FeedbackResponse(
-                            feedback_request=other_feedback_request,
-                            user=feedback_request.user,
-                        )
-                        feedback_response.save()
-
-                    feedback_request.save()
-
-                    unassigned_feedback_requests_without_tracks.remove(feedback_request)
-                    feedback_group_index += 1
-            feedback_group_index += 1
+        # It's possible some requests still won't have been assigned i.e. trackless requests
+        # with a genre for which a group doesn't exist. Add these requests to whatever group;
+        # this is not the time to be picky.
+        unassigned_feedback_requests_without_tracks = list(FeedbackRequest.objects.filter(
+            feedback_group=None,
+            media_url__isnull=True,
+        ).order_by(
+            '-user__rating',
+        ).all())
+        for feedback_request in unassigned_feedback_requests_without_tracks:
+            all_groups = sorted(
+                feedback_groups,
+                key=lambda feedback_group_tuple: (
+                    feedback_group_tuple[0].feedback_requests.count(),
+                )
+            )
+            feedback_group = all_groups[0][0]
+            self.add_request_to_group(feedback_request, feedback_group)
+            feedback_group.refresh_from_db()
         
         return [
             feedback_group
             for feedback_group, genres in feedback_groups
         ]
+
+    def add_request_to_group(self, feedback_request, feedback_group):
+        feedback_request.feedback_group = feedback_group
+
+        # Add response forms for the other requests in the group that aren't trackless.
+        other_feedback_requests_with_tracks = feedback_group.feedback_requests.filter(
+            media_url__isnull=False,
+        ).exclude(
+            id=feedback_request.id,
+        ).all()
+        for other_feedback_request in other_feedback_requests_with_tracks:
+            feedback_response = FeedbackResponse(
+                feedback_request=other_feedback_request,
+                user=feedback_request.user,
+            )
+            feedback_response.save()
+        feedback_request.save()
 
     def handle(self, *args, **options):
         feedback_groups = []

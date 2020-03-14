@@ -129,7 +129,9 @@ class FeedbackRequest(models.Model):
     reminder_email_sent = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.user}\'s request for {truncate_string(self.media_url)} ({self.time_created})'
+        if self.media_url:
+            return f'{self.user}\'s request for {truncate_string(self.media_url)} ({self.time_created})'
+        return f'{self.user}\'s trackless request ({self.time_created})'
 
     class Meta:
         verbose_name = 'FeedbackRequest'

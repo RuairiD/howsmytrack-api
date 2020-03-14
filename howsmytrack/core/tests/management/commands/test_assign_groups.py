@@ -232,21 +232,20 @@ class AssignGroupsTest(TestCase):
         # assert correct emails were sent
         self.assertEqual(len(mail.outbox), 7)
 
-        for i in range(0, 4):
-            email = mail.outbox[i]
-            self.assertEqual(email.subject, "your new feedback group")
-            self.assertEqual(len(email.recipients()), 1)
-            # Need to do some funny indexing because emails are sent in reverse order
-            # i.e. lowest rated member of group has email sent first
-            self.assertEqual(email.recipients()[0], users[3 - i].email)
-            self.assertTrue('https://www.howsmytrack.com/group/1' in email.body)
-
-        for i in range(4, 7):
-            email = mail.outbox[i]
-            self.assertEqual(email.subject, "your new feedback group")
-            self.assertEqual(len(email.recipients()), 1)
-            self.assertEqual(email.recipients()[0], users[4 + 6 - i].email)
-            self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)
+        # Assert the each user received an email linking to the correct group.
+        for user in users:
+            emails_for_user = [
+                email
+                for email in mail.outbox
+                if user.email == email.recipients()[0]
+            ]
+            self.assertEqual(len(emails_for_user), 1)
+            email_for_user = emails_for_user[0]
+            self.assertEqual(email_for_user.subject, "your new feedback group")
+            if user.rating < 2.4:
+                self.assertTrue('https://www.howsmytrack.com/group/2' in email_for_user.body)
+            else:
+                self.assertTrue('https://www.howsmytrack.com/group/1' in email_for_user.body)
 
     def test_assign_groups_uneven_groups_advanced(self):
         # Groups should be a minimum of 3 members
@@ -686,6 +685,55 @@ class AssignGroupsTest(TestCase):
         ]
         genres_without_tracks = [
             GenreChoice.ELECTRONIC.name,
+        ]
+
+        feedback_requests_with_tracks = []
+        for i in range(0, len(genres_with_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[i],
+                media_url='https://soundcloud.com/ruairidx/grey',
+                email_when_grouped=True,
+                genre=genres_with_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_with_tracks.append(feedback_request)
+
+        feedback_requests_without_tracks = []
+        for i in range(0, len(genres_without_tracks)):
+            feedback_request = FeedbackRequest(
+                user=self.users[len(genres_with_tracks) + i],
+                media_url=None,
+                email_when_grouped=True,
+                genre=genres_without_tracks[i],
+            )
+            feedback_request.save()
+            feedback_requests_without_tracks.append(feedback_request)
+
+        call_command('assign_groups')
+
+        self.assertEqual(FeedbackGroup.objects.count(), 2)
+        self.assertEqual(FeedbackResponse.objects.count(), 10)
+        for feedback_group in FeedbackGroup.objects.all():
+            self.assertEqual(
+                feedback_group.feedback_requests.count(),
+                3,
+            )
+          
+    def test_trackless_requests_without_matching_genre(self):
+        """
+        If we have a trackless request without a group containing
+        tracks of the request's genre, just pick the group with
+        the fewest requests.
+        """
+        genres_with_tracks = [
+            GenreChoice.NO_GENRE.name,
+            GenreChoice.NO_GENRE.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+            GenreChoice.ELECTRONIC.name,
+        ]
+        genres_without_tracks = [
+            GenreChoice.HIPHOP.name,
         ]
 
         feedback_requests_with_tracks = []
