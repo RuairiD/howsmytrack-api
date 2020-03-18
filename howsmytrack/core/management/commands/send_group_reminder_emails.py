@@ -77,6 +77,8 @@ class Command(BaseCommand):
             feedback_group__time_created__lt=max_group_time_created,
             email_when_grouped=True,
             reminder_email_sent=False,
+            # Don't send reminder emails to users who have disabled them.
+            user__send_reminder_emails=True,
         ).all()
 
         for feedback_request in unreminded_feedback_requests:

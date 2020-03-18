@@ -118,11 +118,14 @@ class UserType(graphene.ObjectType):
     rating = graphene.Float()
     notifications = graphene.Int()
 
+    send_reminder_emails = graphene.Boolean()
+
     def __eq__(self, other):
         return all([
             self.username == other.username,
             self.rating == other.rating,
             self.notifications == other.notifications,
+            self.send_reminder_emails == other.send_reminder_emails,
         ])
 
 

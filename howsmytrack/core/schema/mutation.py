@@ -143,6 +143,74 @@ class RegisterUser(graphene.Mutation):
         return RegisterUser(success=False, error="Passwords don't match.")
 
 
+class UpdateEmail(graphene.Mutation):
+
+    class Arguments:
+        email = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
+    def mutate(self, info, email):
+        user = info.context.user
+        if user.is_anonymous:
+            return UpdateEmail(success=False, error='Not logged in.')
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+        
+        validator = EmailValidator()
+        try:
+            validator(email)
+        except ValidationError:
+            return UpdateEmail(success=False, error="Please provide a valid email address.")
+
+        # Don't allow users to change their email to one used by another account.
+        existing_users = User.objects.filter(username__iexact=email).count()
+        if existing_users > 0:
+            return UpdateEmail(success=False, error="An account for that email address already exists.")
+
+        feedback_groups_user.update_email(email)
+
+        return UpdateEmail(success=True, error=None)
+
+
+class UpdateSendReminderEmails(graphene.Mutation):
+
+    class Arguments:
+        send_reminder_emails = graphene.Boolean(required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def __eq__(self, other):
+        return all([
+            self.success == other.success,
+            self.error == other.error,
+        ])
+
+    def mutate(self, info, send_reminder_emails):
+        user = info.context.user
+        if user.is_anonymous:
+            return UpdateSendReminderEmails(success=False, error='Not logged in.')
+
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+        
+        feedback_groups_user.send_reminder_emails = send_reminder_emails
+        feedback_groups_user.save()
+
+        return UpdateSendReminderEmails(success=True, error=None)
+
+
 def is_onedrive_url(media_url):
     # Directly downloadable URLs are used for OneDrive links.
     # If the user provides this directly, great. Otherwise, we can
@@ -588,6 +656,8 @@ class MarkRepliesAsRead(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     register_user = RegisterUser.Field()
+    update_email = UpdateEmail.Field()
+    update_send_reminder_emails = UpdateSendReminderEmails.Field()
     create_feedback_request = CreateFeedbackRequest.Field()
     delete_feedback_request = DeleteFeedbackRequest.Field()
     edit_feedback_request = EditFeedbackRequest.Field()

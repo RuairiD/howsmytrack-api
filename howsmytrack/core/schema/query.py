@@ -75,6 +75,7 @@ class Query(graphene.ObjectType):
             username=user.username,
             rating=rating,
             notifications=incomplete_responses + unread_replies,
+            send_reminder_emails=feedback_groups_user.send_reminder_emails,
         )
 
     def resolve_media_info(self, info, media_url):

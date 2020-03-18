@@ -23,6 +23,8 @@ class FeedbackGroupsUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     rating = models.FloatField(default=0)
 
+    send_reminder_emails = models.BooleanField(default=True)
+
     @classmethod
     def create(cls, email, password):
         user = User.objects.create_user(
@@ -32,6 +34,11 @@ class FeedbackGroupsUser(models.Model):
         )
         user.save()
         return FeedbackGroupsUser(user=user)
+
+    def update_email(self, email):
+        self.user.email = email
+        self.user.username = email
+        self.user.save()
 
     @property
     def email(self):
