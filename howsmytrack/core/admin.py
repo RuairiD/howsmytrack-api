@@ -13,6 +13,13 @@ class FeedbackRequestInline(admin.TabularInline):
     extra = 0
 
 
+class FeedbackResponseInline(admin.TabularInline):
+    raw_id_fields = ['user', 'feedback_request']
+    model = FeedbackResponse
+    max_num = 8
+    extra = 0
+
+
 class FeedbackGroupAdmin(admin.ModelAdmin):
     fields = ('name', )
     search_fields = ['name']
@@ -83,6 +90,9 @@ class FeedbackRequestAdmin(admin.ModelAdmin):
         'feedback_group',
     )
     search_fields = ['user__user__username']
+    inlines = [
+        FeedbackResponseInline,
+    ]
 
 
 admin.site.register(FeedbackGroupsUser, FeedbackGroupsUserAdmin)
