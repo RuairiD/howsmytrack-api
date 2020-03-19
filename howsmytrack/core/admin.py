@@ -26,7 +26,8 @@ class FeedbackGroupsUserAdmin(admin.ModelAdmin):
     list_display = (
         'username',
         'rating',
-        'date_joined'
+        'date_joined',
+        'send_reminder_emails',
     )
     inlines = [
         FeedbackRequestInline
