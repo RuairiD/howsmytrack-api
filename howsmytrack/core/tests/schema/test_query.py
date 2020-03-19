@@ -52,6 +52,7 @@ class UserDetailsTest(TestCase):
             username='graham@brightonandhovealbion.com',
             rating=4.5,
             notifications=0,
+            send_reminder_emails=True,
         ))
 
     def test_user_details_logged_in_incomplete_response(self):
@@ -91,6 +92,7 @@ class UserDetailsTest(TestCase):
             username='graham@brightonandhovealbion.com',
             rating=4.5,
             notifications=1,
+            send_reminder_emails=True,
         ))
 
     def test_user_details_logged_in_unread_reply(self):
@@ -139,6 +141,7 @@ class UserDetailsTest(TestCase):
             username='graham@brightonandhovealbion.com',
             rating=4.5,
             notifications=1,
+            send_reminder_emails=True,
         ))
 
 

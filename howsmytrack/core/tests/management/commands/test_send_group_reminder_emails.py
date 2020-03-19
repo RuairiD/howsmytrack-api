@@ -114,8 +114,23 @@ class SendGroupReminderEmailsTest(TestCase):
 
 
     def test_do_not_send_reminder_if_too_soon(self):
-        with patch('django.utils.timezone.now', Mock(return_value=NOW)):
+        self.lewis_user.send_reminder_emails = False
+        self.lewis_user.save()
+
+        with patch('django.utils.timezone.now', Mock(return_value=FUTURE)):
             call_command('send_group_reminder_emails')
+
+        # Assert email was only sent to graham
+        self.assertEqual(len(mail.outbox), 1)
+
+        self.graham_feedback_request.refresh_from_db()
+        self.lewis_feedback_request.refresh_from_db()
+        self.assertTrue(self.graham_feedback_request.reminder_email_sent)
+        self.assertFalse(self.lewis_feedback_request.reminder_email_sent)
+
+
+    def test_do_not_send_reminder_if_user_disabled_send_reminder_emails(self):
+        
 
         self.assertEqual(len(mail.outbox), 0)
 

@@ -23,6 +23,8 @@ class FeedbackGroupsUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     rating = models.FloatField(default=0)
 
+    # If true, user will receive reminder emails if they do not
+    # respond to feedback requests in a timely manner.
     send_reminder_emails = models.BooleanField(default=True)
 
     @classmethod
