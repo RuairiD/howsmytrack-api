@@ -18,7 +18,6 @@ from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import FeedbackResponseReply
 from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
-from howsmytrack.core.schema.types import FeedbackResponseReplyType
 from howsmytrack.core.schema.types import FeedbackResponseRepliesType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType

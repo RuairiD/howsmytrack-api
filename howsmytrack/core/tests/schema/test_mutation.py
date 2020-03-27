@@ -30,6 +30,7 @@ from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
+from howsmytrack.core.schema.types import FeedbackResponseReplyType
 from howsmytrack.schema import schema
 
 
@@ -1496,7 +1497,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         )
 
         self.assertEqual(result, AddFeedbackResponseReply(
-            success=False,
+            reply=None,
             error='Not logged in.',
         ))
 
@@ -1520,7 +1521,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         )
 
         self.assertEqual(result, AddFeedbackResponseReply(
-            success=False,
+            reply=None,
             error='Invalid feedback_response_id',
         ))
 
@@ -1550,7 +1551,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         )
 
         self.assertEqual(result, AddFeedbackResponseReply(
-            success=False,
+            reply=None,
             error='You are not authorised to reply to this feedback.',
         ))
 
@@ -1577,7 +1578,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         )
 
         self.assertEqual(result, AddFeedbackResponseReply(
-            success=False,
+            reply=None,
             error='You cannot reply to this feedback.',
         ))
 
@@ -1609,7 +1610,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         )
 
         self.assertEqual(result, AddFeedbackResponseReply(
-            success=False,
+            reply=None,
             error='You cannot reply to this feedback.',
         ))
 
@@ -1636,7 +1637,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         )
 
         self.assertEqual(result, AddFeedbackResponseReply(
-            success=False,
+            reply=None,
             error='You cannot reply to this feedback.',
         ))
 
@@ -1659,11 +1660,6 @@ class AddFeedbackResponseReplyTest(TestCase):
             allow_replies=True,
         )
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            success=True,
-            error=None,
-        ))
-
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
                 feedback_response=self.feedback_response,
@@ -1673,6 +1669,24 @@ class AddFeedbackResponseReplyTest(TestCase):
             ).count(),
             1,
         )
+
+        reply =  FeedbackResponseReply.objects.filter(
+            feedback_response=self.feedback_response,
+            user=self.feedback_request.user,
+            text='thanks pal',
+            allow_replies=True,
+        ).first()
+
+        self.assertEqual(result, AddFeedbackResponseReply(
+            reply=FeedbackResponseReplyType(
+                id=1,
+                username='You',
+                text='thanks pal',
+                allow_replies=True,
+                time_created=reply.time_created,
+            ),
+            error=None,
+        ))
 
 
 class MarkRepliesAsReadTest(TestCase):

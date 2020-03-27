@@ -774,7 +774,7 @@ class RepliesTest(TestCase):
             info=info,
             feedback_response_id=self.graham_feedback_response.id,
         )
-        self.assertEqual(result, None)
+        self.assertIs(result, None)
 
     def test_bad_id(self):
         info = Mock()
@@ -784,7 +784,7 @@ class RepliesTest(TestCase):
             info=info,
             feedback_response_id=1901,
         )
-        self.assertEqual(result, None)
+        self.assertIs(result, None)
 
     def test_unauthorised(self):
         other_user = FeedbackGroupsUser.create(
@@ -800,7 +800,7 @@ class RepliesTest(TestCase):
             info=info,
             feedback_response_id=self.graham_feedback_response.id,
         )
-        self.assertEqual(result, None)
+        self.assertIs(result, None)
 
     def test_logged_in(self):
         info = Mock()
@@ -830,3 +830,16 @@ class RepliesTest(TestCase):
             ],
         )
         self.assertEqual(result, expected)
+
+    def test_logged_in_unrated(self):
+        self.graham_feedback_response.rating = None
+        self.graham_feedback_response.save()
+
+        info = Mock()
+        info.context = Mock()
+        info.context.user = self.lewis_user.user
+        result = schema.get_query_type().graphene_type().resolve_replies(
+            info=info,
+            feedback_response_id=self.graham_feedback_response.id,
+        )
+        self.assertIs(result, None)
