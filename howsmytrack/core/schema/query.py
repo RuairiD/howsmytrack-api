@@ -18,6 +18,8 @@ from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import FeedbackResponseReply
 from howsmytrack.core.schema.types import FeedbackRequestType
 from howsmytrack.core.schema.types import FeedbackResponseType
+from howsmytrack.core.schema.types import FeedbackResponseReplyType
+from howsmytrack.core.schema.types import FeedbackResponseRepliesType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
 from howsmytrack.core.schema.types import MediaInfoType
@@ -39,6 +41,11 @@ class Query(graphene.ObjectType):
     feedback_groups = graphene.List(FeedbackGroupType)
 
     unassigned_request = graphene.Field(FeedbackRequestType)
+
+    replies = graphene.Field(
+        FeedbackResponseRepliesType,
+        feedback_response_id=graphene.Int(required=True),
+    )
 
     def resolve_user_details(self, info):
         user = info.context.user
@@ -151,3 +158,33 @@ class Query(graphene.ObjectType):
             return None
 
         return FeedbackRequestType.from_model(feedback_request)
+
+    def resolve_replies(self, info, feedback_response_id):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+        
+        feedback_groups_user = FeedbackGroupsUser.objects.filter(
+            user=user,
+        ).first()
+
+        feedback_response =  FeedbackResponse.objects.filter(
+            id=feedback_response_id,
+        ).first()
+
+        if not feedback_response:
+            return None
+
+        # User must have either made the request for the response or written the response.
+        if not feedback_response.user == feedback_groups_user and not feedback_response.feedback_request.user == feedback_groups_user:
+            return None
+
+        # If the user submitted the original request, they cannot see any replies until the
+        # feedback has been rated.
+        if feedback_response.feedback_request.user == feedback_groups_user and feedback_response.rating is None:
+            return None
+
+        return FeedbackResponseRepliesType.from_feedback_response(
+            feedback_response,
+            feedback_groups_user,
+        )

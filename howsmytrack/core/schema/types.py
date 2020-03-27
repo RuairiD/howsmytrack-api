@@ -63,6 +63,31 @@ class FeedbackResponseReplyType(graphene.ObjectType):
         ])
 
 
+class FeedbackResponseRepliesType(graphene.ObjectType):
+    """A collection of replies for a FeedbackResponse, along with
+    pertinent metadata."""
+    replies = graphene.List(FeedbackResponseReplyType)
+    # Whether or not either of the users has chosen to disable 
+    # writing additional replies.
+    allow_further_replies = graphene.Boolean()
+
+    @classmethod
+    def from_feedback_response(cls, feedback_response, feedback_groups_user):
+        return cls(
+            replies=[
+                FeedbackResponseReplyType.from_model(reply, feedback_groups_user)
+                for reply in feedback_response.ordered_replies
+            ],
+            allow_further_replies=feedback_response.allow_replies and feedback_response.allow_further_replies,
+        )
+
+    def __eq__(self, other):
+        return all([
+            self.replies == other.replies,
+            self.allow_further_replies == other.allow_further_replies,
+        ])
+
+
 class FeedbackResponseType(graphene.ObjectType):
     id = graphene.Int()
     feedback_request = graphene.Field(FeedbackRequestType)
@@ -70,12 +95,10 @@ class FeedbackResponseType(graphene.ObjectType):
     submitted = graphene.Boolean()
     rating = graphene.Int()
     # Whether or not the original feedback author allowed the other
-    # user to reply to this feedback.
+    # user to reply to this feedback; this is used to decide whether
+    # to show the 'View Replies' button on the frontend.
     allow_replies = graphene.Boolean()
-    # Whether or not either of the users has chosen to disable 
-    # writing additional replies.
-    allow_further_replies = graphene.Boolean()
-    replies = graphene.List(FeedbackResponseReplyType)
+    replies = graphene.Int()
     unread_replies = graphene.Int()
 
     @classmethod
@@ -87,11 +110,7 @@ class FeedbackResponseType(graphene.ObjectType):
             submitted=model.submitted,
             rating=model.rating,
             allow_replies=model.allow_replies,
-            allow_further_replies=model.allow_replies and model.allow_further_replies,
-            replies=[
-                FeedbackResponseReplyType.from_model(reply, feedback_groups_user)
-                for reply in model.ordered_replies
-            ],
+            replies=model.replies.count(),
             unread_replies=model.replies.exclude(
                 user=feedback_groups_user,
             ).filter(
@@ -107,7 +126,6 @@ class FeedbackResponseType(graphene.ObjectType):
             self.submitted == other.submitted,
             self.rating == other.rating,
             self.allow_replies == other.allow_replies,
-            self.allow_further_replies == other.allow_further_replies,
             self.replies == other.replies,
             self.unread_replies == other.unread_replies,
         ])
