@@ -7,6 +7,8 @@ from django.core.validators import MinValueValidator
 
 
 MAX_DISPLAY_STRING_LENGTH = 50
+
+
 def truncate_string(string, length=MAX_DISPLAY_STRING_LENGTH):
     if len(string) > length:
         return string[:length] + '…'
@@ -150,7 +152,7 @@ class FeedbackRequest(models.Model):
 class FeedbackResponse(models.Model):
     """
     A response to a FeedbackRequest.
-    
+
     When requests are assigned groups in `assign_groups`, blank
     FeedbackResponses are created for every user-request pairing
     (except responses for a user's own request).
@@ -212,7 +214,7 @@ class FeedbackResponse(models.Model):
 class FeedbackResponseReply(models.Model):
     """
     A reply to a FeedbackResponse.
-    
+
     Replies can be left if the corresponding FeedbackResponse has
     allow_replies=True. `user` can either be the user who originally
     submitted the request or the user who responded to it.

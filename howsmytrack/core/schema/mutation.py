@@ -1,5 +1,3 @@
-import datetime
-
 import graphene
 import graphql_jwt
 from django.contrib.auth.models import User
@@ -11,10 +9,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from graphene_django.types import DjangoObjectType
-
 from howsmytrack.core.models import FeedbackGroupsUser
-from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import FeedbackResponseReply
@@ -131,7 +126,7 @@ class RegisterUser(graphene.Mutation):
         if password == password_repeat:
             try:
                 validate_password(password)
-            except ValidationError as e:
+            except ValidationError:
                 return RegisterUser(success=False, error=INVALID_PASSWORD_MESSAGE)
 
             with transaction.atomic():
@@ -166,7 +161,7 @@ class UpdateEmail(graphene.Mutation):
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
-        
+
         validator = EmailValidator()
         try:
             validator(email)
@@ -205,7 +200,7 @@ class UpdateSendReminderEmails(graphene.Mutation):
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
-        
+
         feedback_groups_user.send_reminder_emails = send_reminder_emails
         feedback_groups_user.save()
 
@@ -239,13 +234,14 @@ def validate_media_url(media_url):
         return MediaTypeChoice.SOUNDCLOUD.name
     if 'dropbox.com/' in media_url:
         return MediaTypeChoice.DROPBOX.name
-    if 'drive.google.com/file' in media_url:    
+    if 'drive.google.com/file' in media_url:
         return MediaTypeChoice.GOOGLEDRIVE.name
     if is_onedrive_url(media_url):
         return MediaTypeChoice.ONEDRIVE.name
     raise ValidationError(
         message=INVALID_MEDIA_URL_MESSAGE,
     )
+
 
 class CreateFeedbackRequest(graphene.Mutation):
 
@@ -289,7 +285,7 @@ class CreateFeedbackRequest(graphene.Mutation):
                     error=e.message,
                     invalid_media_url=True,
                 )
-    
+
         # Only create a new request if the user has an outstanding, ungrouped request
         # (should only happen if user's request is from within the last 24 hours or
         # the request is the only one submitted :cry: )
@@ -317,7 +313,7 @@ class CreateFeedbackRequest(graphene.Mutation):
                     error='A request for this track is already pending.',
                     invalid_media_url=False,
                 )
-        
+
         feedback_request = FeedbackRequest(
             user=feedback_groups_user,
             media_url=media_url,
@@ -378,7 +374,7 @@ class EditFeedbackRequest(graphene.Mutation):
                     error=e.message,
                     invalid_media_url=True,
                 )
-    
+
         # Reject the edit if the user does not own the request (or if it doesn't exist)
         feedback_request = FeedbackRequest.objects.filter(
             user=feedback_groups_user,
@@ -398,7 +394,7 @@ class EditFeedbackRequest(graphene.Mutation):
                 error='This request has already been assigned to a feedback group and cannot be edited.',
                 invalid_media_url=False,
             )
-        
+
         feedback_request.media_url = media_url
         feedback_request.media_type = media_type
         # Allow empty feedback prompt
@@ -443,7 +439,7 @@ class DeleteFeedbackRequest(graphene.Mutation):
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
-    
+
         # Reject the deletion if the user does not own the request (or if it doesn't exist)
         feedback_request = FeedbackRequest.objects.filter(
             user=feedback_groups_user,
@@ -461,7 +457,7 @@ class DeleteFeedbackRequest(graphene.Mutation):
                 success=False,
                 error='This request has already been assigned to a feedback group and cannot be edited.',
             )
-        
+
         # No problems; delete it.
         feedback_request.delete()
 
@@ -495,7 +491,7 @@ class SubmitFeedbackResponse(graphene.Mutation):
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
-        
+
         feedback_response = FeedbackResponse.objects.filter(
             user=feedback_groups_user,
             id=feedback_response_id,
@@ -539,7 +535,7 @@ class RateFeedbackResponse(graphene.Mutation):
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
-        
+
         feedback_response = FeedbackResponse.objects.filter(
             feedback_request__user=feedback_groups_user,
             id=feedback_response_id,
@@ -587,7 +583,7 @@ class AddFeedbackResponseReply(graphene.Mutation):
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
-        
+
         feedback_response = FeedbackResponse.objects.filter(
             id=feedback_response_id,
         ).first()
@@ -596,7 +592,7 @@ class AddFeedbackResponseReply(graphene.Mutation):
             return AddFeedbackResponseReply(reply=None, error='Invalid feedback_response_id')
 
         # Only allow the FeedbackRequest user or FeedbackResponseUser to reply.
-        if not feedback_response.user == feedback_groups_user and  not feedback_response.feedback_request.user == feedback_groups_user:
+        if not feedback_response.user == feedback_groups_user and not feedback_response.feedback_request.user == feedback_groups_user:
             return AddFeedbackResponseReply(reply=None, error='You are not authorised to reply to this feedback.')
 
         # The client should prevent users from replying to unsubmitted feedback, obviously,
@@ -643,7 +639,7 @@ class MarkRepliesAsRead(graphene.Mutation):
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
-        
+
         unread_replies = FeedbackResponseReply.objects.exclude(
             user=feedback_groups_user,
         ).filter(

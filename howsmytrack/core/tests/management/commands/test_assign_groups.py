@@ -35,7 +35,6 @@ class AssignGroupsTest(TestCase):
             user.save()
             self.users.append(user)
 
-
     def test_assign_groups_singleton(self):
         # Use feedback requests equal to a multiple of 4 i.e. evenly sized groups
         users = self.users[:1]
@@ -53,7 +52,6 @@ class AssignGroupsTest(TestCase):
 
         # Assert no emails were sent
         self.assertEqual(len(mail.outbox), 0)
-
 
     def test_assign_groups_even_groups(self):
         # Use feedback requests equal to a multiple of 4 i.e. evenly sized groups
@@ -95,7 +93,6 @@ class AssignGroupsTest(TestCase):
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i].email)
             self.assertTrue('https://www.howsmytrack.com/group/1' in email.body)
-
 
     def test_no_email_if_email_when_grouped_false(self):
         # Use feedback requests equal to a multiple of 4 i.e. evenly sized groups
@@ -177,7 +174,7 @@ class AssignGroupsTest(TestCase):
             self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)
             # Verify that HTML content was sent in the email as well
             self.assertTrue(len(email.alternatives) > 0)
-            self.assertTrue(len(email.alternatives[0][0]) > 0) # Message content
+            self.assertTrue(len(email.alternatives[0][0]) > 0)  # Message content
             self.assertEqual(email.alternatives[0][1], 'text/html')
 
     def test_assign_groups_uneven_groups(self):
@@ -564,7 +561,7 @@ class AssignGroupsTest(TestCase):
                 FeedbackResponse.objects.filter(feedback_request__feedback_group=feedback_group).count(),
                 4,
             )
-        
+
         # Trackless requests should have one response assigned to them but a response from a tracked user and a trackless user.
         for feedback_request_with_track in feedback_requests_with_tracks:
             feedback_request_with_track.refresh_from_db()
@@ -576,8 +573,8 @@ class AssignGroupsTest(TestCase):
                 FeedbackResponse.objects.filter(feedback_request=feedback_request_with_track).count(),
                 2,
             )
-        
-        # Trackless requests should have two responses assigned to them but no responses of their own (since they have no track) 
+
+        # Trackless requests should have two responses assigned to them but no responses of their own (since they have no track)
         for feedback_request_without_track in feedback_requests_without_tracks:
             feedback_request_without_track.refresh_from_db()
             self.assertEqual(
@@ -649,7 +646,7 @@ class AssignGroupsTest(TestCase):
                 FeedbackResponse.objects.filter(feedback_request__feedback_group=feedback_group).count(),
                 8,
             )
-        
+
         # Trackless requests should have one response assigned to them but a response from a tracked user and multiple trackless users.
         for feedback_request_with_track in feedback_requests_with_tracks:
             feedback_request_with_track.refresh_from_db()
@@ -661,8 +658,8 @@ class AssignGroupsTest(TestCase):
                 FeedbackResponse.objects.filter(feedback_request=feedback_request_with_track).count(),
                 4,
             )
-        
-        # Trackless requests should have two responses assigned to them but no responses of their own (since they have no track) 
+
+        # Trackless requests should have two responses assigned to them but no responses of their own (since they have no track)
         for feedback_request_without_track in feedback_requests_without_tracks:
             feedback_request_without_track.refresh_from_db()
             self.assertEqual(
@@ -673,7 +670,7 @@ class AssignGroupsTest(TestCase):
                 FeedbackResponse.objects.filter(feedback_request=feedback_request_without_track).count(),
                 0,
             )
-        
+
     def test_trackless_requests_with_uneven_groups(self):
         """In the event that we have uneven groups, smaller groups are prioritised to get additional trackless requests."""
         genres_with_tracks = [
@@ -718,7 +715,7 @@ class AssignGroupsTest(TestCase):
                 feedback_group.feedback_requests.count(),
                 3,
             )
-          
+
     def test_trackless_requests_without_matching_genre(self):
         """
         If we have a trackless request without a group containing
@@ -767,5 +764,3 @@ class AssignGroupsTest(TestCase):
                 feedback_group.feedback_requests.count(),
                 3,
             )
-        
-        

@@ -5,7 +5,6 @@ from django_apscheduler.jobstores import DjangoJobStore
 from django_apscheduler.jobstores import register_events
 from django_apscheduler.jobstores import register_job
 from django.core.management import call_command
-from django.utils import timezone
 
 
 scheduler = BackgroundScheduler()

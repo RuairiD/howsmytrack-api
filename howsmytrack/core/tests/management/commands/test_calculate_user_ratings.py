@@ -7,7 +7,6 @@ from django.test import TestCase
 from howsmytrack.core.management.commands.calculate_user_ratings import MIN_RATINGS_TO_CONSIDER
 from howsmytrack.core.management.commands.calculate_user_ratings import MAX_RATINGS_TO_CONSIDER
 from howsmytrack.core.models import FeedbackGroupsUser
-from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 
@@ -107,4 +106,3 @@ class CalculateUserRatingsTest(TestCase):
 
         # Calculated from most recent ratings, ignoring old ones.
         self.assertEquals(updated_user.rating, 3)
-

@@ -16,7 +16,7 @@ from howsmytrack.core.models import MediaTypeChoice
 
 NOW = datetime.datetime(2020, 2, 16, 6, tzinfo=pytz.utc)
 FUTURE = datetime.datetime(2020, 2, 17, 6, tzinfo=pytz.utc)
-GROUP_TIME_CREATED = datetime.datetime(2020, 2, 16, 3, tzinfo=pytz.utc) # 3 hours ago
+GROUP_TIME_CREATED = datetime.datetime(2020, 2, 16, 3, tzinfo=pytz.utc)  # 3 hours ago
 
 
 class SendGroupReminderEmailsTest(TestCase):
@@ -68,7 +68,6 @@ class SendGroupReminderEmailsTest(TestCase):
         self.graham_feedback_response.save()
         self.lewis_feedback_response.save()
 
-
     def test_send_reminders_to_all(self):
         with patch('django.utils.timezone.now', Mock(return_value=FUTURE)):
             call_command('send_group_reminder_emails')
@@ -80,7 +79,6 @@ class SendGroupReminderEmailsTest(TestCase):
         self.lewis_feedback_request.refresh_from_db()
         self.assertTrue(self.graham_feedback_request.reminder_email_sent)
         self.assertTrue(self.lewis_feedback_request.reminder_email_sent)
-
 
     def test_do_not_send_reminder_if_not_email_when_grouped(self):
         self.lewis_feedback_request.email_when_grouped = False
@@ -97,7 +95,6 @@ class SendGroupReminderEmailsTest(TestCase):
         self.assertTrue(self.graham_feedback_request.reminder_email_sent)
         self.assertFalse(self.lewis_feedback_request.reminder_email_sent)
 
-
     def test_do_not_send_reminder_if_already_sent(self):
         self.lewis_feedback_request.reminder_email_sent = True
         self.lewis_feedback_request.save()
@@ -111,7 +108,6 @@ class SendGroupReminderEmailsTest(TestCase):
         self.graham_feedback_request.refresh_from_db()
         self.lewis_feedback_request.refresh_from_db()
         self.assertTrue(self.graham_feedback_request.reminder_email_sent)
-
 
     def test_do_not_send_reminder_if_too_soon(self):
         self.lewis_user.send_reminder_emails = False
@@ -128,17 +124,19 @@ class SendGroupReminderEmailsTest(TestCase):
         self.assertTrue(self.graham_feedback_request.reminder_email_sent)
         self.assertFalse(self.lewis_feedback_request.reminder_email_sent)
 
-
     def test_do_not_send_reminder_if_user_disabled_send_reminder_emails(self):
-        
+        self.lewis_user.send_reminder_emails = False
+        self.lewis_user.save()
 
-        self.assertEqual(len(mail.outbox), 0)
+        with patch('django.utils.timezone.now', Mock(return_value=FUTURE)):
+            call_command('send_group_reminder_emails')
+
+        self.assertEqual(len(mail.outbox), 1)
 
         self.graham_feedback_request.refresh_from_db()
         self.lewis_feedback_request.refresh_from_db()
-        self.assertFalse(self.graham_feedback_request.reminder_email_sent)
+        self.assertTrue(self.graham_feedback_request.reminder_email_sent)
         self.assertFalse(self.lewis_feedback_request.reminder_email_sent)
-
 
     def test_do_not_send_reminder_if_unassigned(self):
         self.lewis_feedback_request.feedback_group = None
@@ -156,7 +154,6 @@ class SendGroupReminderEmailsTest(TestCase):
         self.assertFalse(self.graham_feedback_request.reminder_email_sent)
         self.assertFalse(self.lewis_feedback_request.reminder_email_sent)
 
-
     def test_do_not_send_reminder_if_response_submitted(self):
         self.lewis_feedback_response.submitted = True
         self.lewis_feedback_response.save()
@@ -170,7 +167,6 @@ class SendGroupReminderEmailsTest(TestCase):
         self.lewis_feedback_request.refresh_from_db()
         self.assertTrue(self.graham_feedback_request.reminder_email_sent)
         self.assertFalse(self.lewis_feedback_request.reminder_email_sent)
-
 
     def test_trackless_request(self):
         self.lewis_feedback_request.media_url = None

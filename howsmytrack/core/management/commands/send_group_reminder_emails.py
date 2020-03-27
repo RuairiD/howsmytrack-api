@@ -2,17 +2,18 @@ from datetime import timedelta
 
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
-from django.core.management.base import CommandError
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 
+
 MIN_GROUP_AGE = timedelta(hours=20)
 
+
 WEBSITE_URL = 'https://www.howsmytrack.com{path}'
+
 
 class Command(BaseCommand):
     """
@@ -62,7 +63,7 @@ class Command(BaseCommand):
         send_mail(
             subject="don't forget your feedback group!",
             message=message,
-            from_email=None, # Use default in settings.py
+            from_email=None,  # Use default in settings.py
             recipient_list=[feedback_request.user.email],
             html_message=html_message,
         )

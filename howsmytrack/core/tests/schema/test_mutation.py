@@ -2,9 +2,7 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 import graphql_jwt
-from django.conf import settings
 from django.test import TestCase
-from graphene.test import Client
 
 from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
@@ -26,10 +24,6 @@ from howsmytrack.core.schema.mutation import UpdateSendReminderEmails
 from howsmytrack.core.schema.mutation import SubmitFeedbackResponse
 from howsmytrack.core.schema.mutation import AddFeedbackResponseReply
 from howsmytrack.core.schema.mutation import MarkRepliesAsRead
-from howsmytrack.core.schema.types import FeedbackRequestType
-from howsmytrack.core.schema.types import FeedbackResponseType
-from howsmytrack.core.schema.types import UserType
-from howsmytrack.core.schema.types import FeedbackGroupType
 from howsmytrack.core.schema.types import FeedbackResponseReplyType
 from howsmytrack.schema import schema
 
@@ -101,7 +95,7 @@ class ObtainJSONWebTokenCaseInsensitiveTest(TestCase):
     def test_different_username(self):
         info = Mock()
         with self.assertRaises(graphql_jwt.exceptions.JSONWebTokenError):
-            result = schema.get_mutation_type().fields['tokenAuth'].resolver(
+            schema.get_mutation_type().fields['tokenAuth'].resolver(
                 root=Mock(),
                 info=info,
                 username='lewis@brightonandhovealbion.com',
@@ -114,7 +108,9 @@ class RefreshTokenFromCookieTest(TestCase):
         context = Mock()
         info = Mock()
         info.context = Mock()
-        info.context.COOKIES = { 'JWT': 'existingtoken' }
+        info.context.COOKIES = {
+            'JWT': 'existingtoken'
+        }
         with patch.object(
             graphql_jwt.Refresh,
             'mutate',
@@ -122,7 +118,7 @@ class RefreshTokenFromCookieTest(TestCase):
                 token='newtoken',
             ),
         ) as mock_mutate:
-            result = schema.get_mutation_type().fields['refreshTokenFromCookie'].resolver(
+            schema.get_mutation_type().fields['refreshTokenFromCookie'].resolver(
                 context,
                 info,
             )
@@ -139,7 +135,7 @@ class RefreshTokenFromCookieTest(TestCase):
             return_value=RefreshTokenFromCookie(
                 token='newtoken',
             ),
-        ) as mock_mutate:
+        ):
             result = schema.get_mutation_type().fields['refreshTokenFromCookie'].resolver(
                 context,
                 info,
@@ -870,7 +866,7 @@ class EditFeedbackRequestTest(TestCase):
                 media_url='https://soundcloud.com/ruairidx/grey',
                 media_type=MediaTypeChoice.SOUNDCLOUD.name,
                 feedback_prompt='feedback_prompt',
-                 genre=GenreChoice.ELECTRONIC.name,
+                genre=GenreChoice.ELECTRONIC.name,
             ).count(),
             1,
         )
@@ -981,7 +977,7 @@ class EditFeedbackRequestTest(TestCase):
             email='lewis@brightonandhovealbion.com',
             password='password',
         )
-        self.new_user.save() 
+        self.new_user.save()
         info = Mock()
         info.context = Mock()
         info.context.user = self.new_user.user
@@ -1670,7 +1666,7 @@ class AddFeedbackResponseReplyTest(TestCase):
             1,
         )
 
-        reply =  FeedbackResponseReply.objects.filter(
+        reply = FeedbackResponseReply.objects.filter(
             feedback_response=self.feedback_response,
             user=self.feedback_request.user,
             text='thanks pal',

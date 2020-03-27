@@ -1,10 +1,7 @@
 import datetime
 import pytz
-from unittest.mock import Mock
-from unittest.mock import patch
 
 from django.test import TestCase
-from graphene.test import Client
 
 from howsmytrack.core.models import truncate_string
 

@@ -67,7 +67,7 @@ class FeedbackResponseRepliesType(graphene.ObjectType):
     """A collection of replies for a FeedbackResponse, along with
     pertinent metadata."""
     replies = graphene.List(FeedbackResponseReplyType)
-    # Whether or not either of the users has chosen to disable 
+    # Whether or not either of the users has chosen to disable
     # writing additional replies.
     allow_further_replies = graphene.Boolean()
 
@@ -163,15 +163,15 @@ class FeedbackGroupType(graphene.ObjectType):
     name = graphene.String()
     time_created = graphene.types.datetime.DateTime()
     # The URL submitted by the logged in user.
-    media_url = graphene.String() # TODO deprecate
-    media_type = graphene.String() # TODO deprecate
+    media_url = graphene.String()  # TODO deprecate
+    media_type = graphene.String()  # TODO deprecate
     # The logged in user's request in this group
     feedback_request = graphene.Field(FeedbackRequestType)
     # The number of users in the group for whom the user must leave feedback.
     members = graphene.Int()
     # The number of users in the group without tracks.
     trackless_members = graphene.Int()
-    # User's feedback responses for other group member's requests 
+    # User's feedback responses for other group member's requests
     feedback_responses = graphene.List(FeedbackResponseType)
     # Feedback received by the user; only sent once user has completed all feedbackReponses
     user_feedback_responses = graphene.List(FeedbackResponseType)

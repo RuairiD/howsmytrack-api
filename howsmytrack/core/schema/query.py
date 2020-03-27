@@ -1,15 +1,6 @@
-import datetime
-
 import graphene
-import graphql_jwt
 from django.core.exceptions import ValidationError
-from django.core.validators import EmailValidator
-from django.core.validators import URLValidator
-from django.db import IntegrityError
 from django.db.models import Q
-from django.utils import timezone
-
-from graphene_django.types import DjangoObjectType
 
 from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
@@ -17,7 +8,6 @@ from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import FeedbackResponseReply
 from howsmytrack.core.schema.types import FeedbackRequestType
-from howsmytrack.core.schema.types import FeedbackResponseType
 from howsmytrack.core.schema.types import FeedbackResponseRepliesType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
@@ -88,7 +78,7 @@ class Query(graphene.ObjectType):
         media_type = None
         try:
             media_type = validate_media_url(media_url)
-        except ValidationError as e:
+        except ValidationError:
             return MediaInfoType(
                 media_url=media_url,
                 media_type=media_type,
@@ -103,12 +93,12 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if user.is_anonymous:
             return None
-        
+
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
 
-        feedback_group =  FeedbackGroup.objects.filter(
+        feedback_group = FeedbackGroup.objects.filter(
             id=feedback_group_id,
         ).first()
 
@@ -117,12 +107,11 @@ class Query(graphene.ObjectType):
 
         return FeedbackGroupType.from_model(feedback_group, feedback_groups_user)
 
-
     def resolve_feedback_groups(self, info):
         user = info.context.user
         if user.is_anonymous:
             return []
-        
+
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
@@ -143,12 +132,12 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if user.is_anonymous:
             return None
-        
+
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
 
-        feedback_request =  FeedbackRequest.objects.filter(
+        feedback_request = FeedbackRequest.objects.filter(
             user=feedback_groups_user,
             feedback_group__isnull=True,
         ).first()
@@ -162,12 +151,12 @@ class Query(graphene.ObjectType):
         user = info.context.user
         if user.is_anonymous:
             return None
-        
+
         feedback_groups_user = FeedbackGroupsUser.objects.filter(
             user=user,
         ).first()
 
-        feedback_response =  FeedbackResponse.objects.filter(
+        feedback_response = FeedbackResponse.objects.filter(
             id=feedback_response_id,
         ).first()
 

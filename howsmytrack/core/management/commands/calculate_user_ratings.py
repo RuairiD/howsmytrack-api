@@ -1,12 +1,11 @@
 from django.core.management.base import BaseCommand
-from django.core.management.base import CommandError
+
 from howsmytrack.core.models import FeedbackGroupsUser
-from howsmytrack.core.models import FeedbackGroup
-from howsmytrack.core.models import FeedbackRequest
-from howsmytrack.core.models import FeedbackResponse
+
 
 MIN_RATINGS_TO_CONSIDER = 3
 MAX_RATINGS_TO_CONSIDER = 15
+
 
 class Command(BaseCommand):
     """
@@ -39,7 +38,7 @@ class Command(BaseCommand):
             feedback_response.rating
             for feedback_response in feedback_responses
         ]
-        rating = sum(ratings)/len(ratings)
+        rating = sum(ratings) / len(ratings)
 
         user.rating = rating
         user.save()
@@ -52,4 +51,3 @@ class Command(BaseCommand):
             self.calculate_rating(user)
 
         self.stdout.write(self.style.SUCCESS(f'Updated ratings for {len(all_users)} users.'))
-        

@@ -4,7 +4,6 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 from django.test import TestCase
-from graphene.test import Client
 
 from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
@@ -76,7 +75,7 @@ class UserDetailsTest(TestCase):
             genre=GenreChoice.NO_GENRE,
         )
         feedback_request.save()
-        
+
         feedback_response = FeedbackResponse(
             feedback_request=feedback_request,
             user=self.user,
@@ -116,7 +115,7 @@ class UserDetailsTest(TestCase):
             genre=GenreChoice.NO_GENRE,
         )
         feedback_request.save()
-        
+
         feedback_response = FeedbackResponse(
             feedback_request=feedback_request,
             user=self.user,
@@ -694,7 +693,7 @@ class UnassignedRequestTest(TestCase):
         result = schema.get_query_type().graphene_type().resolve_unassigned_request(
             info=info,
         )
-        
+
         self.assertIs(result, None)
 
     def test_logged_in_with_unassigned_request(self):

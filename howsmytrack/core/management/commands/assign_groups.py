@@ -1,6 +1,5 @@
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
-from django.core.management.base import CommandError
 from django.db import transaction
 from django.template.loader import render_to_string
 
@@ -8,6 +7,7 @@ from howsmytrack.core.models import GenreChoice
 from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
+
 
 FEEDBACK_GROUP_SIZE = 4
 # Request counts of 2, 5 and 7 are weird because they're prime numbers
@@ -19,7 +19,9 @@ REQUESTS_TO_GROUP_SIZES = dict([
     (7, 4),
 ])
 
+
 WEBSITE_URL = 'https://www.howsmytrack.com{path}'
+
 
 class Command(BaseCommand):
     """
@@ -85,7 +87,7 @@ class Command(BaseCommand):
         send_mail(
             subject="your new feedback group",
             message=message,
-            from_email=None, # Use default in settings.py
+            from_email=None,  # Use default in settings.py
             recipient_list=[email],
             html_message=html_message,
         )
@@ -132,7 +134,7 @@ class Command(BaseCommand):
                     )
                     feedback_response.save()
                     responses_count += 1
-        
+
         self.stdout.write(
             f'Created {feedback_group.name} with {requests_count} requests and {responses_count} responses.',
         )
@@ -289,7 +291,7 @@ class Command(BaseCommand):
             feedback_group = all_groups[0][0]
             self.add_request_to_group(feedback_request, feedback_group)
             feedback_group.refresh_from_db()
-        
+
         return [
             feedback_group
             for feedback_group, genres in feedback_groups
@@ -320,7 +322,3 @@ class Command(BaseCommand):
         # Send every member of the group an email with a link to the newly created group
         for feedback_group in feedback_groups:
             self.send_emails_for_group(feedback_group)
-
-
-
-
