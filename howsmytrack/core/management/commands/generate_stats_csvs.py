@@ -1,13 +1,7 @@
 import csv
-from datetime import timedelta
 
-from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
-from django.core.management.base import CommandError
-from django.template.loader import render_to_string
-from django.utils import timezone
 
-from howsmytrack.core.models import FeedbackGroup
 from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
@@ -98,7 +92,7 @@ def build_response_rates_by_date():
                 if feedback_response.submitted:
                     submissions += 1
             writer.writerow(
-                (date, submissions/len(feedback_responses))
+                (date, submissions / len(feedback_responses))
             )
 
 
