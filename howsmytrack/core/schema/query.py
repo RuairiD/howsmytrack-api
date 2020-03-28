@@ -12,7 +12,7 @@ from howsmytrack.core.schema.types import FeedbackResponseRepliesType
 from howsmytrack.core.schema.types import UserType
 from howsmytrack.core.schema.types import FeedbackGroupType
 from howsmytrack.core.schema.types import MediaInfoType
-from howsmytrack.core.schema.mutation import validate_media_url
+from howsmytrack.core.validators import validate_media_url
 
 
 class Query(graphene.ObjectType):
