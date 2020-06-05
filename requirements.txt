@@ -6,7 +6,7 @@ backcall==0.1.0
 coverage==5.0.3
 decorator==4.4.1
 dj-database-url==0.5.0
-Django==3.0.3
+Django==3.0.7
 django-apscheduler==0.3.0
 django-cors-headers==3.2.1
 django-graphql-jwt==0.3.0
