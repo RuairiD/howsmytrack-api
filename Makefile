@@ -4,4 +4,5 @@ dev:
 test:
 	coverage run --source='howsmytrack' manage.py test
 	coverage report --fail-under=100
-	venv/bin/pre-commit run --all-files
+	pre-commit install
+	pre-commit run --all-files
