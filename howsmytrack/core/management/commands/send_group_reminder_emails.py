@@ -12,7 +12,7 @@ from howsmytrack.core.models import FeedbackResponse
 MIN_GROUP_AGE = timedelta(hours=20)
 
 
-WEBSITE_URL = 'https://www.howsmytrack.com{path}'
+WEBSITE_URL = "https://www.howsmytrack.com{path}"
 
 
 class Command(BaseCommand):
@@ -23,42 +23,55 @@ class Command(BaseCommand):
         - have not already received a reminder email
         - are members of a group that has existed for >20hrs
     """
-    help = 'Sends reminder emails for all assigned requests with enabled emails'
+
+    help = "Sends reminder emails for all assigned requests with enabled emails"
 
     def add_arguments(self, parser):
         pass
 
     def send_reminder_email_for_request(self, feedback_request):
         if feedback_request.media_url is not None:
-            message = render_to_string('group_reminder_email.txt', {
-                'email': feedback_request.user.email,
-                'feedback_group_name': feedback_request.feedback_group.name,
-                'feedback_group_url': WEBSITE_URL.format(
-                    path=f'/group/{feedback_request.feedback_group.id}'
-                ),
-            })
-            html_message = render_to_string('group_reminder_email.html', {
-                'email': feedback_request.user.email,
-                'feedback_group_name': feedback_request.feedback_group.name,
-                'feedback_group_url': WEBSITE_URL.format(
-                    path=f'/group/{feedback_request.feedback_group.id}'
-                ),
-            })
+            message = render_to_string(
+                "group_reminder_email.txt",
+                {
+                    "email": feedback_request.user.email,
+                    "feedback_group_name": feedback_request.feedback_group.name,
+                    "feedback_group_url": WEBSITE_URL.format(
+                        path=f"/group/{feedback_request.feedback_group.id}"
+                    ),
+                },
+            )
+            html_message = render_to_string(
+                "group_reminder_email.html",
+                {
+                    "email": feedback_request.user.email,
+                    "feedback_group_name": feedback_request.feedback_group.name,
+                    "feedback_group_url": WEBSITE_URL.format(
+                        path=f"/group/{feedback_request.feedback_group.id}"
+                    ),
+                },
+            )
         else:
-            message = render_to_string('group_reminder_email_trackless.txt', {
-                'email': feedback_request.user.email,
-                'feedback_group_name': feedback_request.feedback_group.name,
-                'feedback_group_url': WEBSITE_URL.format(
-                    path=f'/group/{feedback_request.feedback_group.id}'
-                ),
-            })
-            html_message = render_to_string('group_reminder_email_trackless.html', {
-                'email': feedback_request.user.email,
-                'feedback_group_name': feedback_request.feedback_group.name,
-                'feedback_group_url': WEBSITE_URL.format(
-                    path=f'/group/{feedback_request.feedback_group.id}'
-                ),
-            })
+            message = render_to_string(
+                "group_reminder_email_trackless.txt",
+                {
+                    "email": feedback_request.user.email,
+                    "feedback_group_name": feedback_request.feedback_group.name,
+                    "feedback_group_url": WEBSITE_URL.format(
+                        path=f"/group/{feedback_request.feedback_group.id}"
+                    ),
+                },
+            )
+            html_message = render_to_string(
+                "group_reminder_email_trackless.html",
+                {
+                    "email": feedback_request.user.email,
+                    "feedback_group_name": feedback_request.feedback_group.name,
+                    "feedback_group_url": WEBSITE_URL.format(
+                        path=f"/group/{feedback_request.feedback_group.id}"
+                    ),
+                },
+            )
 
         send_mail(
             subject="don't forget your feedback group!",

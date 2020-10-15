@@ -12,7 +12,6 @@ INVALID_PASSWORD_MESSAGE = 'Please choose a more secure password. Your password 
 
 
 class RegisterUser(graphene.Mutation):
-
     class Arguments:
         email = graphene.String(required=True)
         password = graphene.String(required=True)
@@ -22,22 +21,23 @@ class RegisterUser(graphene.Mutation):
     error = graphene.String()
 
     def __eq__(self, other):
-        return all([
-            self.success == other.success,
-            self.error == other.error,
-        ])
+        return all([self.success == other.success, self.error == other.error,])
 
     def mutate(self, info, email, password, password_repeat):
         validator = EmailValidator()
         try:
             validator(email)
         except ValidationError:
-            return RegisterUser(success=False, error="Please provide a valid email address.")
+            return RegisterUser(
+                success=False, error="Please provide a valid email address."
+            )
 
         # Don't allow users to sign up with the same email in a different case.
         existing_users = User.objects.filter(username__iexact=email).count()
         if existing_users > 0:
-            return RegisterUser(success=False, error="An account for that email address already exists.")
+            return RegisterUser(
+                success=False, error="An account for that email address already exists."
+            )
 
         if password == password_repeat:
             try:
@@ -46,10 +46,7 @@ class RegisterUser(graphene.Mutation):
                 return RegisterUser(success=False, error=INVALID_PASSWORD_MESSAGE)
 
             with transaction.atomic():
-                user = FeedbackGroupsUser.create(
-                    email=email,
-                    password=password
-                )
+                user = FeedbackGroupsUser.create(email=email, password=password)
                 user.save()
                 return RegisterUser(success=bool(user.id))
         return RegisterUser(success=False, error="Passwords don't match.")

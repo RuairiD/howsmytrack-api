@@ -20,16 +20,16 @@ class ObtainJSONWebTokenCaseInsensitive(graphql_jwt.ObtainJSONWebToken):
           account was created first, while using the exact emails will guarantee
           the exact account.
     """
+
     class Arguments:
         pass
 
     @classmethod
     def mutate(cls, *args, **kwargs):
-        exact_user = User.objects.filter(username=kwargs['username']).first()
-        different_case_user = User.objects.filter(username__iexact=kwargs['username']).first()
+        exact_user = User.objects.filter(username=kwargs["username"]).first()
+        different_case_user = User.objects.filter(
+            username__iexact=kwargs["username"]
+        ).first()
         if not exact_user and different_case_user:
-            kwargs['username'] = different_case_user.username
-        return super(ObtainJSONWebTokenCaseInsensitive, cls).mutate(
-            *args,
-            **kwargs,
-        )
+            kwargs["username"] = different_case_user.username
+        return super(ObtainJSONWebTokenCaseInsensitive, cls).mutate(*args, **kwargs,)

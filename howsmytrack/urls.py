@@ -24,10 +24,13 @@ import howsmytrack.settings
 from howsmytrack.core.views import logout
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
-    path('graphql/', csrf_exempt(jwt_cookie(GraphQLView.as_view(
-        graphiql=howsmytrack.settings.DEBUG
-    )))),
-    path('logout/', logout),
+    path("admin/", admin.site.urls),
+    path("accounts/", include("django.contrib.auth.urls")),
+    path(
+        "graphql/",
+        csrf_exempt(
+            jwt_cookie(GraphQLView.as_view(graphiql=howsmytrack.settings.DEBUG))
+        ),
+    ),
+    path("logout/", logout),
 ]

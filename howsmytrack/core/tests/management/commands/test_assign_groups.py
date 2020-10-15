@@ -2,24 +2,24 @@ from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase
 
-from howsmytrack.core.models import GenreChoice
-from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackGroup
+from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
+from howsmytrack.core.models import GenreChoice
 
 
 USER_ACCOUNTS = [
-    ('graham@brightonandhovealbion.com', 2.1),
-    ('glenn@brightonandhovealbion.com', 2.2),
-    ('maty@brightonandhovealbion.com', 2.3),
-    ('lewis@brightonandhovealbion.com', 2.4),
-    ('shane@brightonandhovealbion.com', 2.5),
-    ('dale@brightonandhovealbion.com', 2.6),
-    ('davy@brightonandhovealbion.com', 2.7),
-    ('neal@brightonandhovealbion.com', 2.8),
-    ('aaron@brightonandhovealbion.com', 2.9),
-    ('alireza@brightonandhovealbion.com', 3),
+    ("graham@brightonandhovealbion.com", 2.1),
+    ("glenn@brightonandhovealbion.com", 2.2),
+    ("maty@brightonandhovealbion.com", 2.3),
+    ("lewis@brightonandhovealbion.com", 2.4),
+    ("shane@brightonandhovealbion.com", 2.5),
+    ("dale@brightonandhovealbion.com", 2.6),
+    ("davy@brightonandhovealbion.com", 2.7),
+    ("neal@brightonandhovealbion.com", 2.8),
+    ("aaron@brightonandhovealbion.com", 2.9),
+    ("alireza@brightonandhovealbion.com", 3),
 ]
 
 
@@ -27,10 +27,7 @@ class AssignGroupsTest(TestCase):
     def setUp(self):
         self.users = []
         for email, rating in USER_ACCOUNTS:
-            user = FeedbackGroupsUser.create(
-                email=email,
-                password='password',
-            )
+            user = FeedbackGroupsUser.create(email=email, password="password",)
             user.rating = rating
             user.save()
             self.users.append(user)
@@ -41,11 +38,11 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
             ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         # Assert no groups were created for just one user.
         self.assertEqual(FeedbackGroup.objects.count(), 0)
@@ -59,11 +56,11 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
             ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         # Assert one group was created and that responses were
         # created for everyone in the group.
@@ -79,10 +76,7 @@ class AssignGroupsTest(TestCase):
 
         for user in users:
             self.assertEqual(
-                FeedbackResponse.objects.filter(
-                    user=user,
-                ).count(),
-                3,
+                FeedbackResponse.objects.filter(user=user,).count(), 3,
             )
 
         # assert correct emails were sent
@@ -92,7 +86,7 @@ class AssignGroupsTest(TestCase):
             self.assertEqual(email.subject, "your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i].email)
-            self.assertTrue('https://www.howsmytrack.com/group/1' in email.body)
+            self.assertTrue("https://www.howsmytrack.com/group/1" in email.body)
 
     def test_no_email_if_email_when_grouped_false(self):
         # Use feedback requests equal to a multiple of 4 i.e. evenly sized groups
@@ -100,11 +94,11 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=False,
             ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         # Assert one group was created and that responses were
         # created for everyone in the group.
@@ -118,25 +112,25 @@ class AssignGroupsTest(TestCase):
     def test_assign_groups_ignore_old_requests(self):
         # Assert that we ignore feedback requests that already have feedback groups
         users = self.users[:4]
-        old_feedback_group = FeedbackGroup(name='nothing really')
+        old_feedback_group = FeedbackGroup(name="nothing really")
         old_feedback_group.save()
         for user in users:
             # First user's request already has a feedback group.
             if user == users[0]:
                 FeedbackRequest(
                     user=user,
-                    media_url='https://soundcloud.com/ruairidx/grey',
+                    media_url="https://soundcloud.com/ruairidx/grey",
                     feedback_group=old_feedback_group,
                     email_when_grouped=True,
                 ).save()
             else:
                 FeedbackRequest(
                     user=user,
-                    media_url='https://soundcloud.com/ruairidx/grey',
+                    media_url="https://soundcloud.com/ruairidx/grey",
                     email_when_grouped=True,
                 ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         # Assert one group was created (excluding old group) and that responses were
         # created for everyone in the group.
@@ -149,19 +143,17 @@ class AssignGroupsTest(TestCase):
         # Check we didn't overwrite the old request or anything stupid.
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[0],
-                feedback_group=old_feedback_group
+                user=users[0], feedback_group=old_feedback_group
             ).count(),
-            1
+            1,
         )
 
         for user in users[1:4]:
             self.assertEqual(
                 FeedbackRequest.objects.filter(
-                    user=user,
-                    feedback_group=feedback_group
+                    user=user, feedback_group=feedback_group
                 ).count(),
-                1
+                1,
             )
 
         # assert correct emails were sent (not to user in old group)
@@ -171,11 +163,11 @@ class AssignGroupsTest(TestCase):
             self.assertEqual(email.subject, "your new feedback group")
             self.assertEqual(len(email.recipients()), 1)
             self.assertEqual(email.recipients()[0], users[i + 1].email)
-            self.assertTrue('https://www.howsmytrack.com/group/2' in email.body)
+            self.assertTrue("https://www.howsmytrack.com/group/2" in email.body)
             # Verify that HTML content was sent in the email as well
             self.assertTrue(len(email.alternatives) > 0)
             self.assertTrue(len(email.alternatives[0][0]) > 0)  # Message content
-            self.assertEqual(email.alternatives[0][1], 'text/html')
+            self.assertEqual(email.alternatives[0][1], "text/html")
 
     def test_assign_groups_uneven_groups(self):
         # Use an abnormal number of feedback requests to force uneven groups.
@@ -183,23 +175,21 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
             ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         # Assert two groups were created of the expected sizes.
         self.assertEqual(FeedbackRequest.objects.count(), 7)
         self.assertEqual(FeedbackGroup.objects.count(), 2)
         all_feedback_groups = FeedbackGroup.objects.all()
         self.assertEqual(
-            all_feedback_groups[0].feedback_requests.count(),
-            4,
+            all_feedback_groups[0].feedback_requests.count(), 4,
         )
         self.assertEqual(
-            all_feedback_groups[1].feedback_requests.count(),
-            3,
+            all_feedback_groups[1].feedback_requests.count(), 3,
         )
 
         self.assertEqual(FeedbackResponse.objects.count(), 12 + 6)
@@ -210,20 +200,18 @@ class AssignGroupsTest(TestCase):
             # Top four users by rating should be in first group
             self.assertEqual(
                 FeedbackRequest.objects.filter(
-                    user=user,
-                    feedback_group=all_feedback_groups[0]
+                    user=user, feedback_group=all_feedback_groups[0]
                 ).count(),
-                1
+                1,
             )
 
         for user in users[4:7]:
             # Bottom three users by rating should be in second group
             self.assertEqual(
                 FeedbackRequest.objects.filter(
-                    user=user,
-                    feedback_group=all_feedback_groups[1]
+                    user=user, feedback_group=all_feedback_groups[1]
                 ).count(),
-                1
+                1,
             )
 
         # assert correct emails were sent
@@ -232,17 +220,19 @@ class AssignGroupsTest(TestCase):
         # Assert the each user received an email linking to the correct group.
         for user in users:
             emails_for_user = [
-                email
-                for email in mail.outbox
-                if user.email == email.recipients()[0]
+                email for email in mail.outbox if user.email == email.recipients()[0]
             ]
             self.assertEqual(len(emails_for_user), 1)
             email_for_user = emails_for_user[0]
             self.assertEqual(email_for_user.subject, "your new feedback group")
             if user.rating < 2.4:
-                self.assertTrue('https://www.howsmytrack.com/group/2' in email_for_user.body)
+                self.assertTrue(
+                    "https://www.howsmytrack.com/group/2" in email_for_user.body
+                )
             else:
-                self.assertTrue('https://www.howsmytrack.com/group/1' in email_for_user.body)
+                self.assertTrue(
+                    "https://www.howsmytrack.com/group/1" in email_for_user.body
+                )
 
     def test_assign_groups_uneven_groups_advanced(self):
         # Groups should be a minimum of 3 members
@@ -251,27 +241,24 @@ class AssignGroupsTest(TestCase):
         for user in users:
             FeedbackRequest(
                 user=user,
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
             ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         # Assert three groups were created of the expected sizes.
         self.assertEqual(FeedbackRequest.objects.count(), 10)
         self.assertEqual(FeedbackGroup.objects.count(), 3)
         all_feedback_groups = FeedbackGroup.objects.all()
         self.assertEqual(
-            all_feedback_groups[0].feedback_requests.count(),
-            4,
+            all_feedback_groups[0].feedback_requests.count(), 4,
         )
         self.assertEqual(
-            all_feedback_groups[1].feedback_requests.count(),
-            3,
+            all_feedback_groups[1].feedback_requests.count(), 3,
         )
         self.assertEqual(
-            all_feedback_groups[2].feedback_requests.count(),
-            3,
+            all_feedback_groups[2].feedback_requests.count(), 3,
         )
 
         self.assertEqual(FeedbackResponse.objects.count(), 12 + 6 + 6)
@@ -282,30 +269,27 @@ class AssignGroupsTest(TestCase):
             # Top four users by rating should be in first group
             self.assertEqual(
                 FeedbackRequest.objects.filter(
-                    user=user,
-                    feedback_group=all_feedback_groups[0]
+                    user=user, feedback_group=all_feedback_groups[0]
                 ).count(),
-                1
+                1,
             )
 
         for user in users[4:7]:
             # Next three users by rating should be in second group
             self.assertEqual(
                 FeedbackRequest.objects.filter(
-                    user=user,
-                    feedback_group=all_feedback_groups[1]
+                    user=user, feedback_group=all_feedback_groups[1]
                 ).count(),
-                1
+                1,
             )
 
         for user in users[7:10]:
             # Bottom three users by rating should be in third group
             self.assertEqual(
                 FeedbackRequest.objects.filter(
-                    user=user,
-                    feedback_group=all_feedback_groups[2]
+                    user=user, feedback_group=all_feedback_groups[2]
                 ).count(),
-                1
+                1,
             )
 
     def test_genres(self):
@@ -320,92 +304,95 @@ class AssignGroupsTest(TestCase):
             GenreChoice.NO_GENRE.name,
             GenreChoice.NO_GENRE.name,
         ]
-        users = self.users[:len(genres)]
+        users = self.users[: len(genres)]
         for i in range(0, len(genres)):
             FeedbackRequest(
                 user=users[i],
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
                 genre=genres[i],
             ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         self.assertEqual(FeedbackGroup.objects.count(), 3)
 
-        electronic_feedback_group = FeedbackGroup.objects.filter(
-            id=1,
-        ).first()
-        hiphop_feedback_group = FeedbackGroup.objects.filter(
-            id=2,
-        ).first()
-        no_genre_feedback_group = FeedbackGroup.objects.filter(
-            id=3,
-        ).first()
+        electronic_feedback_group = FeedbackGroup.objects.filter(id=1,).first()
+        hiphop_feedback_group = FeedbackGroup.objects.filter(id=2,).first()
+        no_genre_feedback_group = FeedbackGroup.objects.filter(id=3,).first()
 
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[0],
-                genre=GenreChoice.ELECTRONIC.name,
-            ).first().feedback_group,
+                user=users[0], genre=GenreChoice.ELECTRONIC.name,
+            )
+            .first()
+            .feedback_group,
             electronic_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[1],
-                genre=GenreChoice.ELECTRONIC.name,
-            ).first().feedback_group,
+                user=users[1], genre=GenreChoice.ELECTRONIC.name,
+            )
+            .first()
+            .feedback_group,
             electronic_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[2],
-                genre=GenreChoice.ELECTRONIC.name,
-            ).first().feedback_group,
+                user=users[2], genre=GenreChoice.ELECTRONIC.name,
+            )
+            .first()
+            .feedback_group,
             electronic_feedback_group,
         )
 
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[3],
-                genre=GenreChoice.HIPHOP.name,
-            ).first().feedback_group,
+                user=users[3], genre=GenreChoice.HIPHOP.name,
+            )
+            .first()
+            .feedback_group,
             hiphop_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[4],
-                genre=GenreChoice.HIPHOP.name,
-            ).first().feedback_group,
+                user=users[4], genre=GenreChoice.HIPHOP.name,
+            )
+            .first()
+            .feedback_group,
             hiphop_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[5],
-                genre=GenreChoice.HIPHOP.name,
-            ).first().feedback_group,
+                user=users[5], genre=GenreChoice.HIPHOP.name,
+            )
+            .first()
+            .feedback_group,
             hiphop_feedback_group,
         )
 
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[6],
-                genre=GenreChoice.NO_GENRE.name,
-            ).first().feedback_group,
+                user=users[6], genre=GenreChoice.NO_GENRE.name,
+            )
+            .first()
+            .feedback_group,
             no_genre_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[7],
-                genre=GenreChoice.NO_GENRE.name,
-            ).first().feedback_group,
+                user=users[7], genre=GenreChoice.NO_GENRE.name,
+            )
+            .first()
+            .feedback_group,
             no_genre_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[8],
-                genre=GenreChoice.NO_GENRE.name,
-            ).first().feedback_group,
+                user=users[8], genre=GenreChoice.NO_GENRE.name,
+            )
+            .first()
+            .feedback_group,
             no_genre_feedback_group,
         )
 
@@ -424,60 +411,58 @@ class AssignGroupsTest(TestCase):
             GenreChoice.HIPHOP.name,
             GenreChoice.NO_GENRE.name,
         ]
-        users = self.users[:len(genres)]
+        users = self.users[: len(genres)]
         for i in range(0, len(genres)):
             FeedbackRequest(
                 user=users[i],
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
                 genre=genres[i],
             ).save()
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         self.assertEqual(FeedbackGroup.objects.count(), 2)
 
-        electronic_feedback_group = FeedbackGroup.objects.filter(
-            id=1,
-        ).first()
-        mixed_feedback_group = FeedbackGroup.objects.filter(
-            id=2,
-        ).first()
+        electronic_feedback_group = FeedbackGroup.objects.filter(id=1,).first()
+        mixed_feedback_group = FeedbackGroup.objects.filter(id=2,).first()
         self.assertEqual(
-            electronic_feedback_group.name,
-            'Feedback Group #1 - Electronic',
+            electronic_feedback_group.name, "Feedback Group #1 - Electronic",
         )
         self.assertEqual(
-            mixed_feedback_group.name,
-            'Feedback Group #2 - Hip-Hop/Rap/No Genre',
+            mixed_feedback_group.name, "Feedback Group #2 - Hip-Hop/Rap/No Genre",
         )
 
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[0],
-                genre=GenreChoice.ELECTRONIC.name,
-            ).first().feedback_group,
+                user=users[0], genre=GenreChoice.ELECTRONIC.name,
+            )
+            .first()
+            .feedback_group,
             electronic_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[1],
-                genre=GenreChoice.ELECTRONIC.name,
-            ).first().feedback_group,
+                user=users[1], genre=GenreChoice.ELECTRONIC.name,
+            )
+            .first()
+            .feedback_group,
             electronic_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[2],
-                genre=GenreChoice.ELECTRONIC.name,
-            ).first().feedback_group,
+                user=users[2], genre=GenreChoice.ELECTRONIC.name,
+            )
+            .first()
+            .feedback_group,
             electronic_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[3],
-                genre=GenreChoice.ELECTRONIC.name,
-            ).first().feedback_group,
+                user=users[3], genre=GenreChoice.ELECTRONIC.name,
+            )
+            .first()
+            .feedback_group,
             electronic_feedback_group,
         )
 
@@ -486,23 +471,26 @@ class AssignGroupsTest(TestCase):
         # own groups and should have been merged with the hiphop requests.
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[4],
-                genre=GenreChoice.HIPHOP.name,
-            ).first().feedback_group,
+                user=users[4], genre=GenreChoice.HIPHOP.name,
+            )
+            .first()
+            .feedback_group,
             mixed_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[5],
-                genre=GenreChoice.HIPHOP.name,
-            ).first().feedback_group,
+                user=users[5], genre=GenreChoice.HIPHOP.name,
+            )
+            .first()
+            .feedback_group,
             mixed_feedback_group,
         )
         self.assertEqual(
             FeedbackRequest.objects.filter(
-                user=users[6],
-                genre=GenreChoice.NO_GENRE.name,
-            ).first().feedback_group,
+                user=users[6], genre=GenreChoice.NO_GENRE.name,
+            )
+            .first()
+            .feedback_group,
             mixed_feedback_group,
         )
 
@@ -522,7 +510,7 @@ class AssignGroupsTest(TestCase):
         for i in range(0, len(genres_with_tracks)):
             feedback_request = FeedbackRequest(
                 user=self.users[i],
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
                 genre=genres_with_tracks[i],
             )
@@ -540,17 +528,18 @@ class AssignGroupsTest(TestCase):
             feedback_request.save()
             feedback_requests_without_tracks.append(feedback_request)
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         self.assertEqual(FeedbackGroup.objects.count(), 2)
         self.assertEqual(FeedbackResponse.objects.count(), 8)
         for feedback_group in FeedbackGroup.objects.all():
             self.assertEqual(
-                feedback_group.feedback_requests.count(),
-                3,
+                feedback_group.feedback_requests.count(), 3,
             )
             self.assertEqual(
-                feedback_group.feedback_requests.filter(media_url__isnull=False).count(),
+                feedback_group.feedback_requests.filter(
+                    media_url__isnull=False
+                ).count(),
                 2,
             )
             self.assertEqual(
@@ -558,7 +547,9 @@ class AssignGroupsTest(TestCase):
                 1,
             )
             self.assertEqual(
-                FeedbackResponse.objects.filter(feedback_request__feedback_group=feedback_group).count(),
+                FeedbackResponse.objects.filter(
+                    feedback_request__feedback_group=feedback_group
+                ).count(),
                 4,
             )
 
@@ -566,11 +557,15 @@ class AssignGroupsTest(TestCase):
         for feedback_request_with_track in feedback_requests_with_tracks:
             feedback_request_with_track.refresh_from_db()
             self.assertEqual(
-                FeedbackResponse.objects.filter(user=feedback_request_with_track.user).count(),
+                FeedbackResponse.objects.filter(
+                    user=feedback_request_with_track.user
+                ).count(),
                 1,
             )
             self.assertEqual(
-                FeedbackResponse.objects.filter(feedback_request=feedback_request_with_track).count(),
+                FeedbackResponse.objects.filter(
+                    feedback_request=feedback_request_with_track
+                ).count(),
                 2,
             )
 
@@ -578,11 +573,15 @@ class AssignGroupsTest(TestCase):
         for feedback_request_without_track in feedback_requests_without_tracks:
             feedback_request_without_track.refresh_from_db()
             self.assertEqual(
-                FeedbackResponse.objects.filter(user=feedback_request_without_track.user).count(),
+                FeedbackResponse.objects.filter(
+                    user=feedback_request_without_track.user
+                ).count(),
                 2,
             )
             self.assertEqual(
-                FeedbackResponse.objects.filter(feedback_request=feedback_request_without_track).count(),
+                FeedbackResponse.objects.filter(
+                    feedback_request=feedback_request_without_track
+                ).count(),
                 0,
             )
 
@@ -607,7 +606,7 @@ class AssignGroupsTest(TestCase):
         for i in range(0, len(genres_with_tracks)):
             feedback_request = FeedbackRequest(
                 user=self.users[i],
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
                 genre=genres_with_tracks[i],
             )
@@ -625,17 +624,18 @@ class AssignGroupsTest(TestCase):
             feedback_request.save()
             feedback_requests_without_tracks.append(feedback_request)
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         self.assertEqual(FeedbackGroup.objects.count(), 2)
         self.assertEqual(FeedbackResponse.objects.count(), 16)
         for feedback_group in FeedbackGroup.objects.all():
             self.assertEqual(
-                feedback_group.feedback_requests.count(),
-                5,
+                feedback_group.feedback_requests.count(), 5,
             )
             self.assertEqual(
-                feedback_group.feedback_requests.filter(media_url__isnull=False).count(),
+                feedback_group.feedback_requests.filter(
+                    media_url__isnull=False
+                ).count(),
                 2,
             )
             self.assertEqual(
@@ -643,7 +643,9 @@ class AssignGroupsTest(TestCase):
                 3,
             )
             self.assertEqual(
-                FeedbackResponse.objects.filter(feedback_request__feedback_group=feedback_group).count(),
+                FeedbackResponse.objects.filter(
+                    feedback_request__feedback_group=feedback_group
+                ).count(),
                 8,
             )
 
@@ -651,11 +653,15 @@ class AssignGroupsTest(TestCase):
         for feedback_request_with_track in feedback_requests_with_tracks:
             feedback_request_with_track.refresh_from_db()
             self.assertEqual(
-                FeedbackResponse.objects.filter(user=feedback_request_with_track.user).count(),
+                FeedbackResponse.objects.filter(
+                    user=feedback_request_with_track.user
+                ).count(),
                 1,
             )
             self.assertEqual(
-                FeedbackResponse.objects.filter(feedback_request=feedback_request_with_track).count(),
+                FeedbackResponse.objects.filter(
+                    feedback_request=feedback_request_with_track
+                ).count(),
                 4,
             )
 
@@ -663,11 +669,15 @@ class AssignGroupsTest(TestCase):
         for feedback_request_without_track in feedback_requests_without_tracks:
             feedback_request_without_track.refresh_from_db()
             self.assertEqual(
-                FeedbackResponse.objects.filter(user=feedback_request_without_track.user).count(),
+                FeedbackResponse.objects.filter(
+                    user=feedback_request_without_track.user
+                ).count(),
                 2,
             )
             self.assertEqual(
-                FeedbackResponse.objects.filter(feedback_request=feedback_request_without_track).count(),
+                FeedbackResponse.objects.filter(
+                    feedback_request=feedback_request_without_track
+                ).count(),
                 0,
             )
 
@@ -688,7 +698,7 @@ class AssignGroupsTest(TestCase):
         for i in range(0, len(genres_with_tracks)):
             feedback_request = FeedbackRequest(
                 user=self.users[i],
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
                 genre=genres_with_tracks[i],
             )
@@ -706,14 +716,13 @@ class AssignGroupsTest(TestCase):
             feedback_request.save()
             feedback_requests_without_tracks.append(feedback_request)
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         self.assertEqual(FeedbackGroup.objects.count(), 2)
         self.assertEqual(FeedbackResponse.objects.count(), 10)
         for feedback_group in FeedbackGroup.objects.all():
             self.assertEqual(
-                feedback_group.feedback_requests.count(),
-                3,
+                feedback_group.feedback_requests.count(), 3,
             )
 
     def test_trackless_requests_without_matching_genre(self):
@@ -737,7 +746,7 @@ class AssignGroupsTest(TestCase):
         for i in range(0, len(genres_with_tracks)):
             feedback_request = FeedbackRequest(
                 user=self.users[i],
-                media_url='https://soundcloud.com/ruairidx/grey',
+                media_url="https://soundcloud.com/ruairidx/grey",
                 email_when_grouped=True,
                 genre=genres_with_tracks[i],
             )
@@ -755,12 +764,11 @@ class AssignGroupsTest(TestCase):
             feedback_request.save()
             feedback_requests_without_tracks.append(feedback_request)
 
-        call_command('assign_groups')
+        call_command("assign_groups")
 
         self.assertEqual(FeedbackGroup.objects.count(), 2)
         self.assertEqual(FeedbackResponse.objects.count(), 10)
         for feedback_group in FeedbackGroup.objects.all():
             self.assertEqual(
-                feedback_group.feedback_requests.count(),
-                3,
+                feedback_group.feedback_requests.count(), 3,
             )

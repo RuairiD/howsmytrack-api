@@ -21,14 +21,16 @@ class FeedbackRequestType(graphene.ObjectType):
         )
 
     def __eq__(self, other):
-        return all([
-            self.id == other.id,
-            self.media_url == other.media_url,
-            self.media_type == other.media_type,
-            self.feedback_prompt == other.feedback_prompt,
-            self.email_when_grouped == other.email_when_grouped,
-            self.genre == other.genre,
-        ])
+        return all(
+            [
+                self.id == other.id,
+                self.media_url == other.media_url,
+                self.media_type == other.media_type,
+                self.feedback_prompt == other.feedback_prompt,
+                self.email_when_grouped == other.email_when_grouped,
+                self.genre == other.genre,
+            ]
+        )
 
 
 class FeedbackResponseReplyType(graphene.ObjectType):
@@ -41,9 +43,9 @@ class FeedbackResponseReplyType(graphene.ObjectType):
 
     @classmethod
     def from_model(cls, model, feedback_groups_user):
-        username = 'Them'
+        username = "Them"
         if feedback_groups_user == model.user:
-            username = 'You'
+            username = "You"
 
         return cls(
             id=model.id,
@@ -54,18 +56,21 @@ class FeedbackResponseReplyType(graphene.ObjectType):
         )
 
     def __eq__(self, other):
-        return all([
-            self.id == other.id,
-            self.username == other.username,
-            self.text == other.text,
-            self.allow_replies == other.allow_replies,
-            self.time_created == other.time_created,
-        ])
+        return all(
+            [
+                self.id == other.id,
+                self.username == other.username,
+                self.text == other.text,
+                self.allow_replies == other.allow_replies,
+                self.time_created == other.time_created,
+            ]
+        )
 
 
 class FeedbackResponseRepliesType(graphene.ObjectType):
     """A collection of replies for a FeedbackResponse, along with
     pertinent metadata."""
+
     replies = graphene.List(FeedbackResponseReplyType)
     # Whether or not either of the users has chosen to disable
     # writing additional replies.
@@ -78,14 +83,17 @@ class FeedbackResponseRepliesType(graphene.ObjectType):
                 FeedbackResponseReplyType.from_model(reply, feedback_groups_user)
                 for reply in feedback_response.ordered_replies
             ],
-            allow_further_replies=feedback_response.allow_replies and feedback_response.allow_further_replies,
+            allow_further_replies=feedback_response.allow_replies
+            and feedback_response.allow_further_replies,
         )
 
     def __eq__(self, other):
-        return all([
-            self.replies == other.replies,
-            self.allow_further_replies == other.allow_further_replies,
-        ])
+        return all(
+            [
+                self.replies == other.replies,
+                self.allow_further_replies == other.allow_further_replies,
+            ]
+        )
 
 
 class FeedbackResponseType(graphene.ObjectType):
@@ -111,24 +119,24 @@ class FeedbackResponseType(graphene.ObjectType):
             rating=model.rating,
             allow_replies=model.allow_replies,
             replies=model.replies.count(),
-            unread_replies=model.replies.exclude(
-                user=feedback_groups_user,
-            ).filter(
-                time_read__isnull=True
-            ).count(),
+            unread_replies=model.replies.exclude(user=feedback_groups_user,)
+            .filter(time_read__isnull=True)
+            .count(),
         )
 
     def __eq__(self, other):
-        return all([
-            self.id == other.id,
-            self.feedback_request == other.feedback_request,
-            self.feedback == other.feedback,
-            self.submitted == other.submitted,
-            self.rating == other.rating,
-            self.allow_replies == other.allow_replies,
-            self.replies == other.replies,
-            self.unread_replies == other.unread_replies,
-        ])
+        return all(
+            [
+                self.id == other.id,
+                self.feedback_request == other.feedback_request,
+                self.feedback == other.feedback,
+                self.submitted == other.submitted,
+                self.rating == other.rating,
+                self.allow_replies == other.allow_replies,
+                self.replies == other.replies,
+                self.unread_replies == other.unread_replies,
+            ]
+        )
 
 
 class UserType(graphene.ObjectType):
@@ -139,12 +147,14 @@ class UserType(graphene.ObjectType):
     send_reminder_emails = graphene.Boolean()
 
     def __eq__(self, other):
-        return all([
-            self.username == other.username,
-            self.rating == other.rating,
-            self.notifications == other.notifications,
-            self.send_reminder_emails == other.send_reminder_emails,
-        ])
+        return all(
+            [
+                self.username == other.username,
+                self.rating == other.rating,
+                self.notifications == other.notifications,
+                self.send_reminder_emails == other.send_reminder_emails,
+            ]
+        )
 
 
 class MediaInfoType(graphene.ObjectType):
@@ -152,10 +162,9 @@ class MediaInfoType(graphene.ObjectType):
     media_type = graphene.String()
 
     def __eq__(self, other):
-        return all([
-            self.media_url == other.media_url,
-            self.media_type == other.media_type,
-        ])
+        return all(
+            [self.media_url == other.media_url, self.media_type == other.media_type,]
+        )
 
 
 class FeedbackGroupType(graphene.ObjectType):
@@ -199,7 +208,9 @@ class FeedbackGroupType(graphene.ObjectType):
             for feedback_response in feedback_request.feedback_responses.all():
                 if feedback_response.user == feedback_groups_user:
                     feedback_responses.append(
-                        FeedbackResponseType.from_model(feedback_response, feedback_groups_user)
+                        FeedbackResponseType.from_model(
+                            feedback_response, feedback_groups_user
+                        )
                     )
 
         # If user has responded to all requests, find user's request and get responses
@@ -207,7 +218,9 @@ class FeedbackGroupType(graphene.ObjectType):
             submitted=True,
         ).all()
         user_feedback_responses = None
-        if all([feedback_response.submitted for feedback_response in feedback_responses]):
+        if all(
+            [feedback_response.submitted for feedback_response in feedback_responses]
+        ):
             # Only returned submitted responses
             user_feedback_responses = [
                 FeedbackResponseType.from_model(feedback_response, feedback_groups_user)
@@ -221,31 +234,29 @@ class FeedbackGroupType(graphene.ObjectType):
             media_url=user_feedback_request.media_url,
             media_type=user_feedback_request.media_type,
             feedback_request=FeedbackRequestType.from_model(user_feedback_request),
-            members=model.feedback_requests.filter(
-                media_url__isnull=False,
-            ).exclude(
-                id=user_feedback_request.id,
-            ).count(),
-            trackless_members=model.feedback_requests.filter(
-                media_url__isnull=True,
-            ).exclude(
-                id=user_feedback_request.id,
-            ).count(),
+            members=model.feedback_requests.filter(media_url__isnull=False,)
+            .exclude(id=user_feedback_request.id,)
+            .count(),
+            trackless_members=model.feedback_requests.filter(media_url__isnull=True,)
+            .exclude(id=user_feedback_request.id,)
+            .count(),
             feedback_responses=feedback_responses,
             user_feedback_responses=user_feedback_responses,
             user_feedback_response_count=len(submitted_responses_for_user),
         )
 
     def __eq__(self, other):
-        return all([
-            self.id == other.id,
-            self.name == other.name,
-            self.time_created == other.time_created,
-            self.media_url == other.media_url,
-            self.media_type == other.media_type,
-            self.members == other.members,
-            self.trackless_members == other.trackless_members,
-            self.feedback_responses == other.feedback_responses,
-            self.user_feedback_responses == other.user_feedback_responses,
-            self.user_feedback_response_count == other.user_feedback_response_count,
-        ])
+        return all(
+            [
+                self.id == other.id,
+                self.name == other.name,
+                self.time_created == other.time_created,
+                self.media_url == other.media_url,
+                self.media_type == other.media_type,
+                self.members == other.members,
+                self.trackless_members == other.trackless_members,
+                self.feedback_responses == other.feedback_responses,
+                self.user_feedback_responses == other.user_feedback_responses,
+                self.user_feedback_response_count == other.user_feedback_response_count,
+            ]
+        )

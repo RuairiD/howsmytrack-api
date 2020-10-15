@@ -2,6 +2,6 @@ from django.http import HttpResponse
 
 
 def logout(request):
-    response = HttpResponse('Cookies Deleted')
-    response.delete_cookie('JWT', path='/')
+    response = HttpResponse("Cookies Deleted")
+    response.delete_cookie("JWT", path="/")
     return response

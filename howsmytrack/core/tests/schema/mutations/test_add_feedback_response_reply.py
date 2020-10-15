@@ -6,8 +6,8 @@ from howsmytrack.core.models import FeedbackGroupsUser
 from howsmytrack.core.models import FeedbackRequest
 from howsmytrack.core.models import FeedbackResponse
 from howsmytrack.core.models import FeedbackResponseReply
-from howsmytrack.core.models import MediaTypeChoice
 from howsmytrack.core.models import GenreChoice
+from howsmytrack.core.models import MediaTypeChoice
 from howsmytrack.core.schema.mutation import AddFeedbackResponseReply
 from howsmytrack.core.schema.types import FeedbackResponseReplyType
 from howsmytrack.schema import schema
@@ -16,21 +16,19 @@ from howsmytrack.schema import schema
 class AddFeedbackResponseReplyTest(TestCase):
     def setUp(self):
         self.request_user = FeedbackGroupsUser.create(
-            email='graham@brightonandhovealbion.com',
-            password='password',
+            email="graham@brightonandhovealbion.com", password="password",
         )
         self.request_user.save()
         self.response_user = FeedbackGroupsUser.create(
-            email='lewis@brightonandhovealbion.com',
-            password='password',
+            email="lewis@brightonandhovealbion.com", password="password",
         )
         self.response_user.save()
 
         self.feedback_request = FeedbackRequest(
             user=self.request_user,
-            media_url='https://soundcloud.com/ruairidx/grey',
+            media_url="https://soundcloud.com/ruairidx/grey",
             media_type=MediaTypeChoice.SOUNDCLOUD.name,
-            feedback_prompt='feedback_prompt',
+            feedback_prompt="feedback_prompt",
             genre=GenreChoice.HIPHOP.name,
         )
         self.feedback_request.save()
@@ -38,7 +36,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         self.feedback_response = FeedbackResponse(
             user=self.response_user,
             feedback_request=self.feedback_request,
-            feedback='feedback',
+            feedback="feedback",
             submitted=True,
             allow_replies=True,
         )
@@ -46,18 +44,21 @@ class AddFeedbackResponseReplyTest(TestCase):
 
     def test_logged_out(self):
         info = Mock()
-        result = schema.get_mutation_type().fields['addFeedbackResponseReply'].resolver(
-            self=Mock(),
-            info=info,
-            feedback_response_id=self.feedback_response.id,
-            text='thanks pal',
-            allow_replies=True,
+        result = (
+            schema.get_mutation_type()
+            .fields["addFeedbackResponseReply"]
+            .resolver(
+                self=Mock(),
+                info=info,
+                feedback_response_id=self.feedback_response.id,
+                text="thanks pal",
+                allow_replies=True,
+            )
         )
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            reply=None,
-            error='Not logged in.',
-        ))
+        self.assertEqual(
+            result, AddFeedbackResponseReply(reply=None, error="Not logged in.",)
+        )
 
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
@@ -70,18 +71,22 @@ class AddFeedbackResponseReplyTest(TestCase):
         info = Mock()
         info.context = Mock()
         info.context.user = self.request_user.user
-        result = schema.get_mutation_type().fields['addFeedbackResponseReply'].resolver(
-            self=Mock(),
-            info=info,
-            feedback_response_id=1901,
-            text='thanks pal',
-            allow_replies=True,
+        result = (
+            schema.get_mutation_type()
+            .fields["addFeedbackResponseReply"]
+            .resolver(
+                self=Mock(),
+                info=info,
+                feedback_response_id=1901,
+                text="thanks pal",
+                allow_replies=True,
+            )
         )
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            reply=None,
-            error='Invalid feedback_response_id',
-        ))
+        self.assertEqual(
+            result,
+            AddFeedbackResponseReply(reply=None, error="Invalid feedback_response_id",),
+        )
 
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
@@ -92,26 +97,31 @@ class AddFeedbackResponseReplyTest(TestCase):
 
     def test_invalid_user(self):
         unrelated_user = FeedbackGroupsUser.create(
-            email='maty@brightonandhovealbion.com',
-            password='password',
+            email="maty@brightonandhovealbion.com", password="password",
         )
         unrelated_user.save()
 
         info = Mock()
         info.context = Mock()
         info.context.user = unrelated_user.user
-        result = schema.get_mutation_type().fields['addFeedbackResponseReply'].resolver(
-            self=Mock(),
-            info=info,
-            feedback_response_id=self.feedback_response.id,
-            text='thanks pal',
-            allow_replies=True,
+        result = (
+            schema.get_mutation_type()
+            .fields["addFeedbackResponseReply"]
+            .resolver(
+                self=Mock(),
+                info=info,
+                feedback_response_id=self.feedback_response.id,
+                text="thanks pal",
+                allow_replies=True,
+            )
         )
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            reply=None,
-            error='You are not authorised to reply to this feedback.',
-        ))
+        self.assertEqual(
+            result,
+            AddFeedbackResponseReply(
+                reply=None, error="You are not authorised to reply to this feedback.",
+            ),
+        )
 
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
@@ -127,18 +137,24 @@ class AddFeedbackResponseReplyTest(TestCase):
         info = Mock()
         info.context = Mock()
         info.context.user = self.feedback_request.user.user
-        result = schema.get_mutation_type().fields['addFeedbackResponseReply'].resolver(
-            self=Mock(),
-            info=info,
-            feedback_response_id=self.feedback_response.id,
-            text='thanks pal',
-            allow_replies=True,
+        result = (
+            schema.get_mutation_type()
+            .fields["addFeedbackResponseReply"]
+            .resolver(
+                self=Mock(),
+                info=info,
+                feedback_response_id=self.feedback_response.id,
+                text="thanks pal",
+                allow_replies=True,
+            )
         )
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            reply=None,
-            error='You cannot reply to this feedback.',
-        ))
+        self.assertEqual(
+            result,
+            AddFeedbackResponseReply(
+                reply=None, error="You cannot reply to this feedback.",
+            ),
+        )
 
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
@@ -151,7 +167,7 @@ class AddFeedbackResponseReplyTest(TestCase):
         existing_reply = FeedbackResponseReply(
             feedback_response=self.feedback_response,
             user=self.feedback_request.user,
-            text='danke mate',
+            text="danke mate",
             allow_replies=False,
         )
         existing_reply.save()
@@ -159,18 +175,24 @@ class AddFeedbackResponseReplyTest(TestCase):
         info = Mock()
         info.context = Mock()
         info.context.user = self.feedback_response.user.user
-        result = schema.get_mutation_type().fields['addFeedbackResponseReply'].resolver(
-            self=Mock(),
-            info=info,
-            feedback_response_id=self.feedback_response.id,
-            text='thanks pal',
-            allow_replies=True,
+        result = (
+            schema.get_mutation_type()
+            .fields["addFeedbackResponseReply"]
+            .resolver(
+                self=Mock(),
+                info=info,
+                feedback_response_id=self.feedback_response.id,
+                text="thanks pal",
+                allow_replies=True,
+            )
         )
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            reply=None,
-            error='You cannot reply to this feedback.',
-        ))
+        self.assertEqual(
+            result,
+            AddFeedbackResponseReply(
+                reply=None, error="You cannot reply to this feedback.",
+            ),
+        )
 
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
@@ -186,18 +208,24 @@ class AddFeedbackResponseReplyTest(TestCase):
         info = Mock()
         info.context = Mock()
         info.context.user = self.feedback_response.user.user
-        result = schema.get_mutation_type().fields['addFeedbackResponseReply'].resolver(
-            self=Mock(),
-            info=info,
-            feedback_response_id=self.feedback_response.id,
-            text='thanks pal',
-            allow_replies=True,
+        result = (
+            schema.get_mutation_type()
+            .fields["addFeedbackResponseReply"]
+            .resolver(
+                self=Mock(),
+                info=info,
+                feedback_response_id=self.feedback_response.id,
+                text="thanks pal",
+                allow_replies=True,
+            )
         )
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            reply=None,
-            error='You cannot reply to this feedback.',
-        ))
+        self.assertEqual(
+            result,
+            AddFeedbackResponseReply(
+                reply=None, error="You cannot reply to this feedback.",
+            ),
+        )
 
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
@@ -210,19 +238,23 @@ class AddFeedbackResponseReplyTest(TestCase):
         info = Mock()
         info.context = Mock()
         info.context.user = self.feedback_request.user.user
-        result = schema.get_mutation_type().fields['addFeedbackResponseReply'].resolver(
-            self=Mock(),
-            info=info,
-            feedback_response_id=self.feedback_response.id,
-            text='thanks pal',
-            allow_replies=True,
+        result = (
+            schema.get_mutation_type()
+            .fields["addFeedbackResponseReply"]
+            .resolver(
+                self=Mock(),
+                info=info,
+                feedback_response_id=self.feedback_response.id,
+                text="thanks pal",
+                allow_replies=True,
+            )
         )
 
         self.assertEqual(
             FeedbackResponseReply.objects.filter(
                 feedback_response=self.feedback_response,
                 user=self.feedback_request.user,
-                text='thanks pal',
+                text="thanks pal",
                 allow_replies=True,
             ).count(),
             1,
@@ -231,17 +263,20 @@ class AddFeedbackResponseReplyTest(TestCase):
         reply = FeedbackResponseReply.objects.filter(
             feedback_response=self.feedback_response,
             user=self.feedback_request.user,
-            text='thanks pal',
+            text="thanks pal",
             allow_replies=True,
         ).first()
 
-        self.assertEqual(result, AddFeedbackResponseReply(
-            reply=FeedbackResponseReplyType(
-                id=1,
-                username='You',
-                text='thanks pal',
-                allow_replies=True,
-                time_created=reply.time_created,
+        self.assertEqual(
+            result,
+            AddFeedbackResponseReply(
+                reply=FeedbackResponseReplyType(
+                    id=1,
+                    username="You",
+                    text="thanks pal",
+                    allow_replies=True,
+                    time_created=reply.time_created,
+                ),
+                error=None,
             ),
-            error=None,
-        ))
+        )

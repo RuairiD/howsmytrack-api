@@ -13,7 +13,7 @@ This is a pretty standard Django project for the most part. As-is, it is designe
  3. `python manage.py runserver # Done.`
 
 ## API
-Almost the entire API is served from a `/graphql` endpoint*; when running in debug mode, visiting `/graphql` in a browser allows access to a playground where the user can dick around with queries. 
+Almost the entire API is served from a `/graphql` endpoint*; when running in debug mode, visiting `/graphql` in a browser allows access to a playground where the user can dick around with queries.
 
 \* this was my first GraphQL project; as such, things like schema design are likely a bit crap.
 

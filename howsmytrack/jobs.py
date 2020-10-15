@@ -1,10 +1,10 @@
 from threading import Lock
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from django.core.management import call_command
 from django_apscheduler.jobstores import DjangoJobStore
 from django_apscheduler.jobstores import register_events
 from django_apscheduler.jobstores import register_job
-from django.core.management import call_command
 
 
 scheduler = BackgroundScheduler()
@@ -18,28 +18,28 @@ JOB_HOUR = 10
 lock = Lock()
 
 
-@register_job(scheduler, 'cron', hour=JOB_HOUR)
+@register_job(scheduler, "cron", hour=JOB_HOUR)
 def calculate_user_ratings():
     with lock:
-        print('Starting: calculate_user_ratings')
-        call_command('calculate_user_ratings')
-        print('Done: calculate_user_ratings')
+        print("Starting: calculate_user_ratings")
+        call_command("calculate_user_ratings")
+        print("Done: calculate_user_ratings")
 
 
-@register_job(scheduler, 'cron', hour=JOB_HOUR, minute=15)
+@register_job(scheduler, "cron", hour=JOB_HOUR, minute=15)
 def send_group_reminder_emails():
     with lock:
-        print('Starting: send_group_reminder_emails')
-        call_command('send_group_reminder_emails')
-        print('Done: send_group_reminder_emails')
+        print("Starting: send_group_reminder_emails")
+        call_command("send_group_reminder_emails")
+        print("Done: send_group_reminder_emails")
 
 
-@register_job(scheduler, 'cron', hour=JOB_HOUR, minute=30)
+@register_job(scheduler, "cron", hour=JOB_HOUR, minute=30)
 def assign_groups():
     with lock:
-        print('Starting: assign_groups')
-        call_command('assign_groups')
-        print('Done: assign_groups')
+        print("Starting: assign_groups")
+        call_command("assign_groups")
+        print("Done: assign_groups")
 
 
 def start_scheduler():
@@ -47,6 +47,6 @@ def start_scheduler():
         if scheduler.state == 0:
             register_events(scheduler)
             scheduler.start()
-            print('Started scheduler.')
+            print("Started scheduler.")
         else:
-            print('Attempted to start scheduler, but scheduler was already running.')
+            print("Attempted to start scheduler, but scheduler was already running.")
