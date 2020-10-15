@@ -6,11 +6,12 @@
 The frontend portion of "How's My Track?" can be found [here](https://github.com/ruairid/howsmytrack-web).
 
 ## Running
-This is a pretty standard Django project for the most part. As-is, it is designed to be run on Heroku, but setting `DEBUG = True` in `settings.py` will allow it to run on `localhost` with a sqlite DB. Run these inside a python3 virtualenv:
+This is a pretty standard Django project for the most part. As-is, it is designed to be run on Heroku, but setting `RUNNING_LOCALLY = True` in `settings.py` will allow it to run on `localhost` with a sqlite DB. Run these inside a python3 virtualenv:
 
- 1. `pip install -r requirements.txt # Install dependencies`
- 2. `python manage.py migrate # Create database tables`
- 3. `python manage.py runserver # Done.`
+ 1. `pip install -r requirements.txt`
+ 2. `pre-commit install`
+ 3. `python manage.py migrate`
+ 4. `python manage.py runserver`
 
 ## API
 Almost the entire API is served from a `/graphql` endpoint*; when running in debug mode, visiting `/graphql` in a browser allows access to a playground where the user can dick around with queries.
