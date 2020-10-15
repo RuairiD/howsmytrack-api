@@ -10,10 +10,10 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-from howsmytrack.jobs import start_scheduler
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "howsmytrack.settings")
 
 application = get_wsgi_application()
+
+from howsmytrack.jobs import start_scheduler
 
 start_scheduler()
