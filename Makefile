@@ -6,6 +6,9 @@ test: venv
 	coverage report --fail-under=100
 	pre-commit run --all-files
 
+travis: test
+	coveralls
+
 venv:
 	virtualenv -p python3 venv
 	. venv/bin/activate

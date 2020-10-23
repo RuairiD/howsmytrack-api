@@ -4,10 +4,4 @@ python:
 install:
   - make venv
 script:
-  - make test
-
-deploy:
-  - provider: script
-    script: coveralls
-    on:
-      branch: master
+  - make travis
