@@ -19,7 +19,7 @@ In any case, run these inside a python3 virtualenv:
 Tests with coverage reporting can be run with `make test`. To run specific tests, use the django `test` command e.g. `python manage.py test path/to/test`.
 
 ## API
-Almost the entire API is served from a `/graphql` endpoint*; when running in debug mode, visiting `/graphql` in a browser allows access to a playground where the user can dick around with queries.
+Almost the entire API is served from a `/graphql` endpoint; when running in debug mode, visiting `/graphql` in a browser allows access to a playground where the user can dick around with queries.
 
 ## Authentication
 JWTs are used for stateless authentication. The [`django-graphql-jwt`](https://github.com/flavors/django-graphql-jwt) package is used for providing tokens, which are set in a HttpOnly `JWT` cookie.
