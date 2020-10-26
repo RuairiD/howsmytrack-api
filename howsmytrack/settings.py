@@ -14,7 +14,7 @@ import sys
 from datetime import timedelta
 
 # SECURITY WARNING: don't run with debug turned on in production!
-RUNNING_LOCALLY = True
+RUNNING_LOCALLY = False
 DEBUG = RUNNING_LOCALLY or "test" in sys.argv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
