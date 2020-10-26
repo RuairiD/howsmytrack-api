@@ -22,8 +22,11 @@ class FeedbackResponseInline(admin.TabularInline):
 
 
 class FeedbackGroupAdmin(admin.ModelAdmin):
-    fields = ("name",)
     search_fields = ["name"]
+    list_display = (
+        "name",
+        "time_created",
+    )
     inlines = [FeedbackRequestInline]
 
 
