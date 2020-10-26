@@ -8,12 +8,7 @@ The frontend portion of "How's My Track?" can be found [here](https://github.com
 ## Running
 This is a pretty standard Django project for the most part. By default, it will run in a development environment on `localhost` with a sqlite DB. The production environment is configured specifically for Heroku and can be run by setting the `ENVIRONMENT` environment variable to `"PROD"`.
 
-In any case, run these inside a python3 virtualenv:
-
- 1. `pip install -r requirements.txt`
- 2. `pre-commit install`
- 3. `python manage.py migrate`
- 4. `make dev`
+In any case, the app can be run locally with `make dev`. This uses Django's `runserver` command, and therefore should not be used in production.
 
 ## Tests
 Tests with coverage reporting can be run with `make test`. To run specific tests, use the django `test` command e.g. `python manage.py test path/to/test`.

@@ -14,6 +14,7 @@ venv:
 	. venv/bin/activate
 	pip install -r requirements.txt
 	pre-commit install
+	python manage.py migrate
 
 clean:
 	rm -rf venv
