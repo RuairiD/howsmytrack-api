@@ -13,9 +13,14 @@ import os
 import sys
 from datetime import timedelta
 
-# SECURITY WARNING: don't run with debug turned on in production!
-RUNNING_LOCALLY = False
-DEBUG = RUNNING_LOCALLY or "test" in sys.argv
+RUNNING_ON_PROD = os.environ.get("ENVIRONMENT") == "PROD"
+
+if RUNNING_ON_PROD:
+    print("Running in prod environment.")
+else:
+    print("Running in dev environment.")
+
+DEBUG = not RUNNING_ON_PROD or "test" in sys.argv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

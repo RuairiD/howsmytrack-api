@@ -5,4 +5,4 @@ class CoreConfig(AppConfig):
     name = "howsmytrack.core"
 
     def ready(self):
-        print("core app ready")
+        print("Core app ready.")
