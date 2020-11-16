@@ -22,8 +22,10 @@ from graphql_jwt.decorators import jwt_cookie
 
 import howsmytrack.settings
 from howsmytrack.core.views import logout
+from howsmytrack.core.views import redirect_to_www
 
 urlpatterns = [
+    path("", redirect_to_www),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path(
