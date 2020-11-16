@@ -143,8 +143,12 @@ GRAPHQL_JWT = {
     "JWT_VERIFY_EXPIRATION": True,
     "JWT_EXPIRATION_DELTA": timedelta(hours=72),
     "JWT_REFRESH_EXPIRATION_DELTA": timedelta(days=7),
+    # JWT cookies can only be sent over HTTPS connections.
     "JWT_COOKIE_SECURE": True,
     "JWT_COOKIE_SAMESITE": "Strict",
+    # All authentication uses cookies, so allowing tokens to be included in
+    # query bodies is an unnecessary risk.
+    "JWT_HIDE_TOKEN_FIELDS": True,
 }
 
 # Password validation

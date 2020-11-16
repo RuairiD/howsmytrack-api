@@ -17,9 +17,6 @@ from howsmytrack.core.schema.mutations.obtain_json_web_token_case_insensitive im
 from howsmytrack.core.schema.mutations.rate_feedback_response import (
     RateFeedbackResponse,
 )
-from howsmytrack.core.schema.mutations.refresh_token_from_cookie import (
-    RefreshTokenFromCookie,
-)
 from howsmytrack.core.schema.mutations.register_user import RegisterUser
 from howsmytrack.core.schema.mutations.submit_feedback_response import (
     SubmitFeedbackResponse,
@@ -44,4 +41,3 @@ class Mutation(graphene.ObjectType):
     mark_replies_as_read = MarkRepliesAsRead.Field()
 
     token_auth = ObtainJSONWebTokenCaseInsensitive.Field()
-    refresh_token_from_cookie = RefreshTokenFromCookie.Field()
