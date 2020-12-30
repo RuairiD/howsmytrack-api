@@ -34,7 +34,10 @@ if not DEBUG:
     SECRET_KEY = os.environ.get("SECRET_KEY", "secret_key")
 
 
-ALLOWED_HOSTS = ["howsmytrack-api.herokuapp.com" "api.howsmytrack.com"]
+ALLOWED_HOSTS = [
+    "howsmytrack-api.herokuapp.com",
+    "api.howsmytrack.com",
+]
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
 
@@ -102,6 +105,7 @@ else:
         "https://howsmytrack.com",
         "https://www.howsmytrack.com",
         "https://howsmytrack-web.herokuapp.com",
+        "https://howsmytrack-web-stage.herokuapp.com",
     ]
 
 CORS_ALLOW_CREDENTIALS = True
