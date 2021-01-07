@@ -34,7 +34,7 @@ ipdb==0.12.3
 ipython==7.12.0
 ipython-genutils==0.2.0
 jedi==0.16.0
-lxml==4.5.2
+lxml==4.6.2
 mccabe==0.6.1
 nodeenv==1.5.0
 parso==0.6.1
