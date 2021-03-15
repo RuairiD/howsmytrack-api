@@ -191,27 +191,22 @@ class FeedbackGroupType(graphene.ObjectType):
 
     @classmethod
     def from_model(cls, model, feedback_groups_user):
-        user_feedback_request = [
-            feedback_request
-            for feedback_request in model.feedback_requests.all()
-            if feedback_request.user == feedback_groups_user
-        ][0]
-
-        feedback_requests_for_user = [
-            feedback_request
-            for feedback_request in model.feedback_requests.all()
-            if feedback_request.user != feedback_groups_user
-        ]
+        user_feedback_request = model.feedback_requests.get(user=feedback_groups_user)
+        feedback_requests_for_user = model.feedback_requests.exclude(
+            user=feedback_groups_user
+        ).all()
 
         feedback_responses = []
         for feedback_request in feedback_requests_for_user:
-            for feedback_response in feedback_request.feedback_responses.all():
-                if feedback_response.user == feedback_groups_user:
-                    feedback_responses.append(
-                        FeedbackResponseType.from_model(
-                            feedback_response, feedback_groups_user
-                        )
+            feedback_responses_for_user = feedback_request.feedback_responses.filter(
+                user=feedback_groups_user
+            ).all()
+            for feedback_response in feedback_responses_for_user:
+                feedback_responses.append(
+                    FeedbackResponseType.from_model(
+                        feedback_response, feedback_groups_user
                     )
+                )
 
         # If user has responded to all requests, find user's request and get responses
         submitted_responses_for_user = user_feedback_request.feedback_responses.filter(
