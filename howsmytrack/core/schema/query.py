@@ -86,7 +86,11 @@ class Query(graphene.ObjectType):
 
         feedback_groups_user = FeedbackGroupsUser.objects.filter(user=user,).first()
 
-        feedback_group = FeedbackGroup.objects.filter(id=feedback_group_id,).first()
+        feedback_group = (
+            FeedbackGroup.objects.filter(id=feedback_group_id,)
+            .prefetch_related("feedback_requests")
+            .first()
+        )
 
         if not feedback_group:
             return None
@@ -102,6 +106,8 @@ class Query(graphene.ObjectType):
 
         feedback_requests = (
             FeedbackRequest.objects.filter(user=feedback_groups_user,)
+            .select_related("user", "feedback_group")
+            .prefetch_related("feedback_group__feedback_requests")
             .order_by("-time_created")
             .all()
         )
