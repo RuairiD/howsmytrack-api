@@ -13,7 +13,7 @@ cssselect==1.1.0
 decorator==4.4.1
 distlib==0.3.1
 dj-database-url==0.5.0
-Django==3.0.7
+Django==3.1.6
 django-apscheduler==0.3.0
 django-cors-headers==3.2.1
 django-graphql-jwt==0.3.1
