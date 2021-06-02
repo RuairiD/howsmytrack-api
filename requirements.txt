@@ -61,7 +61,7 @@ toml==0.10.1
 traitlets==4.3.3
 tzlocal==2.0.0
 Unidecode==1.1.1
-urllib3==1.25.11
+urllib3==1.26.5
 virtualenv==20.0.34
 wcwidth==0.1.8
 whitenoise==5.0.1
